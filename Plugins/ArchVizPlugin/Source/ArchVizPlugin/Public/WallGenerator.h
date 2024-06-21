@@ -43,7 +43,9 @@ public:
 
 	void HighlightWall();
 	void DeHighlightWall();
+	void SetMaterial(UMaterialInterface* Material);
 
 	void SetWallSegment(UStaticMeshComponent* Segment);
 	UStaticMeshComponent* GetWallSegment();
+
 };

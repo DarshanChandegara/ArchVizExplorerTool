@@ -29,9 +29,17 @@ struct FRoadMaterial {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterialInterface* Material;
+};
+
+USTRUCT(BlueprintType)
+struct FWallMaterial {
+	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString Name;
+	UTexture2D* Image;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UMaterialInterface* Material;
 };
 
 UCLASS()
@@ -46,5 +54,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FRoadMaterial> RoadMaterialArray;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FWallMaterial> WallMaterialArray;
 	
 };

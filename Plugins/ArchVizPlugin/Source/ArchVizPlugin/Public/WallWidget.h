@@ -43,6 +43,9 @@ public:
 	UButton* DeleteButton;
 
 	UPROPERTY(meta = (BindWidget))
+	UButton* MoveButton;
+
+	UPROPERTY(meta = (BindWidget))
 	UHorizontalBox* HorizontalBox;
 
 	UPROPERTY(meta = (BindWidget))

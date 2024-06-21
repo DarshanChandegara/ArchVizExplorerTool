@@ -145,3 +145,8 @@ void ARoadGenerator::DeHighlightRoad()
 
 }
 
+void ARoadGenerator::SetMaterial(UMaterialInterface* Material)
+{
+	if (Road) Road->SetMaterial(0, Material);
+}
+

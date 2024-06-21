@@ -86,6 +86,27 @@ void AWallGenerator::DeHighlightWall()
 	}
 }
 
+void AWallGenerator::SetMaterial(UMaterialInterface* Material)
+{
+	for (auto it : WallArray) {
+		if (it) {
+			if (it->GetMaterials().Num() == 1) {
+				it->SetMaterial(0 , Material);
+			}
+			else if (it->GetMaterials().Num() == 2) {
+				it->SetMaterial(1, Material);
+			}
+			else if (it->GetMaterials().Num() == 3) {
+				it->SetMaterial(1, Material);
+				it->SetMaterial(2, Material);
+			}
+			else if (it->GetMaterials().Num() == 4) {
+				it->SetMaterial(3, Material);
+			}
+		}
+	}
+}
+
 void AWallGenerator::SetWallSegment(UStaticMeshComponent* Segment)
 {
 	WallSegment = Segment;

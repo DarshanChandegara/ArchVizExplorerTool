@@ -60,6 +60,10 @@ void SSScrollBoxWidget::CreateScrollBox()
 		CreateRoadMaterialScrollBox();
 		break;
 
+	case EAssetType::WallMaterial:
+		CreateWallMaterialScrollBox();
+		break;
+
 	}
 
 	
@@ -169,7 +173,7 @@ void SSScrollBoxWidget::CreateRoadMaterialScrollBox()
 					ThumbnailBrush->SetImageSize(FVector2D(ImageSize));
 					TSharedPtr<SImage> ThumbnailImage = SNew(SImage).Image(ThumbnailBrush).OnMouseButtonDown_Lambda([this, RoadData](const FGeometry& InGeometry, const FPointerEvent& MouseEvent) {
 						if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
-							//OnDoorSelected.ExecuteIfBound(RoadData);
+							OnRoadSelected.ExecuteIfBound(RoadData);
 							return FReply::Handled();
 						}
 						return FReply::Unhandled();
@@ -185,14 +189,71 @@ void SSScrollBoxWidget::CreateRoadMaterialScrollBox()
 							];
 				}
 
-
-				TSharedPtr<STextBlock> TextBlock = SNew(STextBlock).Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Regular.ttf"), ThumbnailTextSize))
-					.ColorAndOpacity(FSlateColor(FColor::FromHex("#05631eFF")));;
-				TextBlock->SetText(FText::FromString(RoadData.Name));
-				VerticalBox->AddSlot().HAlign(EHorizontalAlignment::HAlign_Center).AutoHeight()
+				ScrollBox->AddSlot().VAlign(EVerticalAlignment::VAlign_Center).Padding(FVector2D(5))
 					[
-						TextBlock.ToSharedRef()
+						VerticalBox.ToSharedRef()
 					];
+			}
+			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Doors");
+
+		}
+	}
+
+	RootVerticalBox->AddSlot().AutoHeight().HAlign(EHorizontalAlignment::HAlign_Center)
+		[
+			HeadText.ToSharedRef()
+		];
+
+	RootVerticalBox->AddSlot().AutoHeight()
+		[
+			ScrollBox.ToSharedRef()
+		];
+}
+
+void SSScrollBoxWidget::CreateWallMaterialScrollBox()
+{
+	if (DataAssetManager.IsValid()) {
+		for (auto WallData : DataAssetManager->WallMaterialArray) {
+
+			if (WallData.Image) {
+				TSharedPtr<SVerticalBox> VerticalBox = SNew(SVerticalBox);
+
+				TSharedPtr<SBorder> ImageBorder = SNew(SBorder);
+
+				FSlateBrush* BorderImage = new FSlateBrush();
+				BorderImage->DrawAs = ESlateBrushDrawType::Type::RoundedBox;
+				FSlateBrushOutlineSettings OutlineSettings{};
+				OutlineSettings.CornerRadii = FVector4{ 5,5,5,5 };
+				OutlineSettings.RoundingType = ESlateBrushRoundingType::Type::FixedRadius;
+				BorderImage->OutlineSettings = OutlineSettings;
+
+
+
+				FSlateBrush* ThumbnailBrush = new FSlateBrush();
+				ThumbnailBrush->SetResourceObject(WallData.Image);
+
+				if (UTexture2D* newThumbnail = Cast<UTexture2D>(WallData.Image))
+				{
+					//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Success");
+
+					ThumbnailBrush->SetImageSize(FVector2D(ImageSize));
+					TSharedPtr<SImage> ThumbnailImage = SNew(SImage).Image(ThumbnailBrush).OnMouseButtonDown_Lambda([this, WallData](const FGeometry& InGeometry, const FPointerEvent& MouseEvent) {
+						if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
+							OnWallSelected.ExecuteIfBound(WallData);
+							return FReply::Handled();
+						}
+						return FReply::Unhandled();
+						}).Cursor(EMouseCursor::Hand);
+
+						ImageBorder->SetContent(ThumbnailImage.ToSharedRef());
+						ImageBorder->SetBorderImage(BorderImage);
+						ImageBorder->SetBorderBackgroundColor(FColor::Cyan);
+
+						VerticalBox->AddSlot()
+							[
+								ImageBorder.ToSharedRef()
+							];
+				}
 
 				ScrollBox->AddSlot().VAlign(EVerticalAlignment::VAlign_Center).Padding(FVector2D(5))
 					[

@@ -27,5 +27,6 @@ public:
 
 	void HighlightRoad();
 	void DeHighlightRoad();
+	void SetMaterial(UMaterialInterface* Material);
 
 };

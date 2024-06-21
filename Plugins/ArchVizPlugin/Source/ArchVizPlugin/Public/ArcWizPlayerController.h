@@ -10,6 +10,8 @@
 #include "WallGenerator.h"
 #include "WallWidget.h"
 #include "RoofGenerator.h"
+#include "MaterialWidget.h"
+#include "InteriorGenerator.h"
 #include "ArcWizPlayerController.generated.h"
 
 UENUM()
@@ -37,7 +39,15 @@ class ARCHVIZPLUGIN_API AArcWizPlayerController : public APlayerController
 
 private:
 	// Variables 
-	// 
+		
+
+	bool bWallMode = false;
+	bool bRoofMode = false;
+	bool bFloorMode = false;
+	bool bDoorMode = false;
+	bool bViewMode = false;
+	bool bAdjustMode = false;
+
 	// Road Generation
 
 	UPROPERTY()
@@ -71,7 +81,6 @@ private:
 	UPROPERTY()
 	UStaticMeshComponent* SelectedMesh;
 
-	bool bAdjustMode = false;
 
 	FVector CurrentLocation;
 private:
@@ -142,6 +151,9 @@ private:
 	void DeleteObject();	
 
 	UFUNCTION()
+	void MoveObject();
+
+	UFUNCTION()
 	void HandleSegmentChange(float segments);
 
 	UFUNCTION()
@@ -164,6 +176,16 @@ private:
 
 	UFUNCTION()
 	void HandleDoorSelect(const FDoorType& DoorData);
+
+	UFUNCTION()
+	void HandleWallMaterialSelect(const FWallMaterial& WallData);
+
+	UFUNCTION()
+	void HandleRoadMaterialSelect(const FRoadMaterial& WallData);
+
+	// Material
+
+	void MaterialSelection();
 
 
 public:
@@ -239,6 +261,31 @@ public:
 
 	UPROPERTY()
 	UWallWidget* WallWidget;
+
+
+	// Interior
+
+	UPROPERTY()
+	AInteriorGenerator* Interior;
+
+	UPROPERTY(EditAnywhere , BlueprintReadWrite)
+	UStaticMesh* StaticMesh;
+
+	// Materials 
+
+	UPROPERTY()
+	UInputMappingContext* MaterialMapping;
+
+	UPROPERTY()
+	UInputAction* MaterialLeftClickAction;
+
+	// Material UI
+
+	UPROPERTY(EditAnywhere , BlueprintReadWrite)
+	TSubclassOf<UMaterialWidget> MaterialWidgetClass;
+
+	UPROPERTY()
+	UMaterialWidget* MaterialWidget;
 
 	
 

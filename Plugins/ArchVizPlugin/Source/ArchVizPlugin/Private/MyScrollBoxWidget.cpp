@@ -9,6 +9,8 @@ TSharedRef<SWidget> UMyScrollBoxWidget::RebuildWidget()
 	if (ScrollBar) {
 		//GEngine->AddOnScreenDebugMessage(-1,5,FColor::Blue , "Scroll");
 		ScrollBar->OnDoorSelected.BindUObject(this, &UMyScrollBoxWidget::HandleOnDoorSelected);
+		ScrollBar->OnWallSelected.BindUObject(this, &UMyScrollBoxWidget::HandleOnWallSelected);
+		ScrollBar->OnRoadSelected.BindUObject(this, &UMyScrollBoxWidget::HandleOnRoadSelected);
 	}
 	return ScrollBar.ToSharedRef();
 }
@@ -30,4 +32,15 @@ void UMyScrollBoxWidget::ReleaseSlateResources(bool breleaseresource)
 void UMyScrollBoxWidget::HandleOnDoorSelected(const FDoorType& DoorData)
 {
 	OnDoorSelectEvent.ExecuteIfBound(DoorData);
+}
+
+void UMyScrollBoxWidget::HandleOnWallSelected(const FWallMaterial& WallData)
+{
+	OnWallSelectedEvent.ExecuteIfBound(WallData);
+}
+
+void UMyScrollBoxWidget::HandleOnRoadSelected(const FRoadMaterial& RoadData)
+{
+	OnRoadSelectedEvent.ExecuteIfBound(RoadData);
+
 }

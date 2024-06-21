@@ -10,10 +10,13 @@
 UENUM()
 enum class EAssetType : int8 {
 	Door ,
-	RoadMaterial
+	RoadMaterial,
+	WallMaterial
 };
 
 DECLARE_DELEGATE_OneParam(FOnDoorSelected, const FDoorType& DoorData)
+DECLARE_DELEGATE_OneParam(FOnWallSelected, const FWallMaterial& WallData)
+DECLARE_DELEGATE_OneParam(FOnRoadSelected, const FRoadMaterial& RoadData)
 
 class ARCHVIZPLUGIN_API SSScrollBoxWidget : public SCompoundWidget
 {
@@ -41,6 +44,8 @@ public:
 	FSlateColor BGColor;
 
 	FOnDoorSelected OnDoorSelected;
+	FOnWallSelected OnWallSelected;
+	FOnRoadSelected OnRoadSelected;
 
 
 	TSharedPtr<SScrollBox> ScrollBox;
@@ -52,6 +57,7 @@ public:
 
 	void CreateDoorScrollBox();
 	void CreateRoadMaterialScrollBox();
+	void CreateWallMaterialScrollBox();
 
 };
 

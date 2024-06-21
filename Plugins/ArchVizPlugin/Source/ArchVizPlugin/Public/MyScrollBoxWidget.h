@@ -8,6 +8,8 @@
 #include "MyScrollBoxWidget.generated.h"
 
 DECLARE_DELEGATE_OneParam(FOnDoorSelectEvent, const FDoorType&)
+DECLARE_DELEGATE_OneParam(FOnWallSelectEvent, const FWallMaterial&)
+DECLARE_DELEGATE_OneParam(FOnRoadSelectEvent, const FRoadMaterial&)
 
 UCLASS()
 class ARCHVIZPLUGIN_API UMyScrollBoxWidget : public UWidget
@@ -42,9 +44,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FSlateColor BGColor;
 
-	void HandleOnDoorSelected(const FDoorType& DoorData);
 
 	FOnDoorSelectEvent OnDoorSelectEvent;
+	FOnWallSelectEvent OnWallSelectedEvent;
+	FOnRoadSelectEvent OnRoadSelectedEvent;
 
+	void HandleOnDoorSelected(const FDoorType& DoorData);
+	void HandleOnWallSelected(const FWallMaterial& WallData);
+	void HandleOnRoadSelected(const FRoadMaterial& RoadData);
 	
 };
