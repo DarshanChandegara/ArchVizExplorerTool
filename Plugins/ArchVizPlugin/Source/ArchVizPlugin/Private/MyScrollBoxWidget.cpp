@@ -11,6 +11,7 @@ TSharedRef<SWidget> UMyScrollBoxWidget::RebuildWidget()
 		ScrollBar->OnDoorSelected.BindUObject(this, &UMyScrollBoxWidget::HandleOnDoorSelected);
 		ScrollBar->OnWallSelected.BindUObject(this, &UMyScrollBoxWidget::HandleOnWallSelected);
 		ScrollBar->OnRoadSelected.BindUObject(this, &UMyScrollBoxWidget::HandleOnRoadSelected);
+		ScrollBar->OnStaticMeshSelected.BindUObject(this, &UMyScrollBoxWidget::HandleOnStaticMeshSelected);
 	}
 	return ScrollBar.ToSharedRef();
 }
@@ -42,5 +43,10 @@ void UMyScrollBoxWidget::HandleOnWallSelected(const FWallMaterial& WallData)
 void UMyScrollBoxWidget::HandleOnRoadSelected(const FRoadMaterial& RoadData)
 {
 	OnRoadSelectedEvent.ExecuteIfBound(RoadData);
+}
 
+
+void UMyScrollBoxWidget::HandleOnStaticMeshSelected(const FStaticMeshtype& MeshData)
+{
+	OnStaticMeshSelectEvent.ExecuteIfBound(MeshData);
 }

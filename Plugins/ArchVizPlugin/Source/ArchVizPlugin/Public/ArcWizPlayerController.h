@@ -12,6 +12,7 @@
 #include "RoofGenerator.h"
 #include "MaterialWidget.h"
 #include "InteriorGenerator.h"
+#include "InteriorWidget.h"
 #include "ArcWizPlayerController.generated.h"
 
 UENUM()
@@ -29,7 +30,15 @@ enum class EHouseConstructionMode :int8 {
 	Floor ,
 	Door ,
 	View ,
-	Adjust
+	Adjust,
+	none
+};
+
+UENUM()
+enum class EInteriorType :int8 {
+	Chair , 
+	Table , 
+	Sofa
 };
 
 UCLASS()
@@ -87,7 +96,9 @@ private:
 
 	// Functions
 
-	void SetVisibility();
+	void SetHouseModeVisibility();
+
+	void SetInteriorModeVisibility();
 	// Road 
 
 	void SpawnAndGenerateRoad(FVector Dimension);
@@ -183,6 +194,23 @@ private:
 	UFUNCTION()
 	void HandleRoadMaterialSelect(const FRoadMaterial& WallData);
 
+	// Interior UI
+
+	UFUNCTION()
+	void ChairButtonClick();
+
+	UFUNCTION()
+	void TableButtonClick();
+
+	UFUNCTION()
+	void SofaButtonClick();
+
+	//UFUNCTION()
+	//void HandleChairSelect(const FChairType& ChairData);
+
+	UFUNCTION()
+	void HandleStaticMeshSelect(const FStaticMeshtype& MeshData);
+
 	// Material
 
 	void MaterialSelection();
@@ -271,6 +299,14 @@ public:
 	UPROPERTY(EditAnywhere , BlueprintReadWrite)
 	UStaticMesh* StaticMesh;
 
+	// Interior UI
+
+	UPROPERTY(EditAnywhere , BlueprintReadWrite)
+	TSubclassOf<UInteriorWidget> InteriorWidgetClass;
+
+	UPROPERTY()
+	UInteriorWidget* InteriorWidget;
+
 	// Materials 
 
 	UPROPERTY()
@@ -315,6 +351,9 @@ public:
 
 	UPROPERTY()
 	TEnumAsByte<EHouseConstructionMode> HouseConstructionMode;
+
+	UPROPERTY()
+	TEnumAsByte<EInteriorType> InteriorType;
 
 	UFUNCTION(BlueprintCallable)
 	void HandleModeChange(FString mode);
