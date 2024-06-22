@@ -10,6 +10,9 @@ UCLASS()
 class ARCHVIZPLUGIN_API AInteriorGenerator : public AActor
 {
 	GENERATED_BODY()
+
+	UPROPERTY()
+	UStaticMeshComponent* MeshComponent;
 	
 public:	
 	AInteriorGenerator();
@@ -25,5 +28,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void Generate(UStaticMesh* StaticMesh);
+
+	void SetStaticMesh(UStaticMesh* SMesh);
 
 };

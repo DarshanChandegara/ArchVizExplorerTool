@@ -42,6 +42,29 @@ struct FWallMaterial {
 	UMaterialInterface* Material;
 };
 
+USTRUCT(BlueprintType)
+struct FChairType {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTexture2D* Image;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStaticMesh* ChairMesh;
+};
+
+USTRUCT(BlueprintType)
+struct FStaticMeshtype {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTexture2D* Image;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStaticMesh* StaticMesh;
+};
+
+
 UCLASS()
 class ARCHVIZPLUGIN_API UDataAssetManager : public UDataAsset
 {
@@ -57,5 +80,14 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FWallMaterial> WallMaterialArray;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FStaticMeshtype> ChairArray;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FStaticMeshtype> TableArray;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FStaticMeshtype> SofaArray;
 	
 };

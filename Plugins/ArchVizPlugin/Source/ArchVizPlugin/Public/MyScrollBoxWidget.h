@@ -10,6 +10,7 @@
 DECLARE_DELEGATE_OneParam(FOnDoorSelectEvent, const FDoorType&)
 DECLARE_DELEGATE_OneParam(FOnWallSelectEvent, const FWallMaterial&)
 DECLARE_DELEGATE_OneParam(FOnRoadSelectEvent, const FRoadMaterial&)
+DECLARE_DELEGATE_OneParam(FOnStaticMeshSelectEvent, const FStaticMeshtype&)
 
 UCLASS()
 class ARCHVIZPLUGIN_API UMyScrollBoxWidget : public UWidget
@@ -48,9 +49,10 @@ public:
 	FOnDoorSelectEvent OnDoorSelectEvent;
 	FOnWallSelectEvent OnWallSelectedEvent;
 	FOnRoadSelectEvent OnRoadSelectedEvent;
+	FOnStaticMeshSelectEvent OnStaticMeshSelectEvent;
 
 	void HandleOnDoorSelected(const FDoorType& DoorData);
 	void HandleOnWallSelected(const FWallMaterial& WallData);
 	void HandleOnRoadSelected(const FRoadMaterial& RoadData);
-	
+	void HandleOnStaticMeshSelected(const FStaticMeshtype& TableData);
 };

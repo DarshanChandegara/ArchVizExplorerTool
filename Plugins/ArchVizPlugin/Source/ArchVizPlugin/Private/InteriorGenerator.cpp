@@ -27,9 +27,16 @@ void AInteriorGenerator::Tick(float DeltaTime)
 
 void AInteriorGenerator::Generate(UStaticMesh* StaticMesh)
 {
-	UStaticMeshComponent* Mesh = NewObject<UStaticMeshComponent>(this);
-	Mesh->AttachToComponent(Scene, FAttachmentTransformRules::KeepRelativeTransform);
-	Mesh->RegisterComponent();
-	Mesh->SetStaticMesh(StaticMesh);
+	MeshComponent = NewObject<UStaticMeshComponent>(this);
+	MeshComponent->AttachToComponent(Scene, FAttachmentTransformRules::KeepRelativeTransform);
+	MeshComponent->RegisterComponent();
+	MeshComponent->SetStaticMesh(StaticMesh);
+}
+
+void AInteriorGenerator::SetStaticMesh(UStaticMesh* SMesh)
+{
+	if (MeshComponent) {
+		MeshComponent->SetStaticMesh(SMesh);
+	}
 }
 

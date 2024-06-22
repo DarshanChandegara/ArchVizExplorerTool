@@ -11,12 +11,16 @@ UENUM()
 enum class EAssetType : int8 {
 	Door ,
 	RoadMaterial,
-	WallMaterial
+	WallMaterial,
+	Chair,
+	Table,
+	sofa
 };
 
 DECLARE_DELEGATE_OneParam(FOnDoorSelected, const FDoorType& DoorData)
 DECLARE_DELEGATE_OneParam(FOnWallSelected, const FWallMaterial& WallData)
 DECLARE_DELEGATE_OneParam(FOnRoadSelected, const FRoadMaterial& RoadData)
+DECLARE_DELEGATE_OneParam(FOnStaticMeshSelected, const FStaticMeshtype& MeshData)
 
 class ARCHVIZPLUGIN_API SSScrollBoxWidget : public SCompoundWidget
 {
@@ -46,6 +50,7 @@ public:
 	FOnDoorSelected OnDoorSelected;
 	FOnWallSelected OnWallSelected;
 	FOnRoadSelected OnRoadSelected;
+	FOnStaticMeshSelected OnStaticMeshSelected;
 
 
 	TSharedPtr<SScrollBox> ScrollBox;
@@ -58,6 +63,9 @@ public:
 	void CreateDoorScrollBox();
 	void CreateRoadMaterialScrollBox();
 	void CreateWallMaterialScrollBox();
+	void CreateChairScrollBox();
+	void CreateTableScrollBox();
+	void CreateSofaScrollBox();
 
 };
 

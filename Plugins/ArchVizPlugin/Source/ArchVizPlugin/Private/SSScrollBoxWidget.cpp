@@ -64,6 +64,18 @@ void SSScrollBoxWidget::CreateScrollBox()
 		CreateWallMaterialScrollBox();
 		break;
 
+	case EAssetType::Chair:
+		CreateChairScrollBox();
+		break;
+
+	case EAssetType::Table:
+		CreateTableScrollBox();
+		break;
+
+	case EAssetType::sofa:
+		CreateSofaScrollBox();
+		break;
+
 	}
 
 	
@@ -276,4 +288,204 @@ void SSScrollBoxWidget::CreateWallMaterialScrollBox()
 		];
 }
 
+void SSScrollBoxWidget::CreateChairScrollBox()
+{
+	if (DataAssetManager.IsValid()) {
+		for (auto ChairData : DataAssetManager->ChairArray) {
+
+			if (ChairData.Image) {
+				TSharedPtr<SVerticalBox> VerticalBox = SNew(SVerticalBox);
+
+				TSharedPtr<SBorder> ImageBorder = SNew(SBorder);
+
+				FSlateBrush* BorderImage = new FSlateBrush();
+				BorderImage->DrawAs = ESlateBrushDrawType::Type::RoundedBox;
+				FSlateBrushOutlineSettings OutlineSettings{};
+				OutlineSettings.CornerRadii = FVector4{ 5,5,5,5 };
+				OutlineSettings.RoundingType = ESlateBrushRoundingType::Type::FixedRadius;
+				BorderImage->OutlineSettings = OutlineSettings;
+
+
+
+				FSlateBrush* ThumbnailBrush = new FSlateBrush();
+				ThumbnailBrush->SetResourceObject(ChairData.Image);
+
+				if (UTexture2D* newThumbnail = Cast<UTexture2D>(ChairData.Image))
+				{
+					//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Success");
+
+					ThumbnailBrush->SetImageSize(FVector2D(ImageSize));
+					TSharedPtr<SImage> ThumbnailImage = SNew(SImage).Image(ThumbnailBrush).OnMouseButtonDown_Lambda([this, ChairData](const FGeometry& InGeometry, const FPointerEvent& MouseEvent) {
+						if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
+							OnStaticMeshSelected.ExecuteIfBound(ChairData);
+							return FReply::Handled();
+						}
+						return FReply::Unhandled();
+						}).Cursor(EMouseCursor::Hand);
+
+						ImageBorder->SetContent(ThumbnailImage.ToSharedRef());
+						ImageBorder->SetBorderImage(BorderImage);
+						ImageBorder->SetBorderBackgroundColor(FColor::Cyan);
+
+						VerticalBox->AddSlot()
+							[
+								ImageBorder.ToSharedRef()
+							];
+				}
+
+				ScrollBox->AddSlot().VAlign(EVerticalAlignment::VAlign_Center).Padding(FVector2D(5))
+					[
+						VerticalBox.ToSharedRef()
+					];
+			}
+			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Doors");
+
+		}
+	}
+
+	RootVerticalBox->AddSlot().AutoHeight().HAlign(EHorizontalAlignment::HAlign_Center)
+		[
+			HeadText.ToSharedRef()
+		];
+
+	RootVerticalBox->AddSlot().AutoHeight()
+		[
+			ScrollBox.ToSharedRef()
+		];
+}
+
+void SSScrollBoxWidget::CreateTableScrollBox()
+{
+	if (DataAssetManager.IsValid()) {
+		for (auto TableData : DataAssetManager->TableArray) {
+
+			if (TableData.Image) {
+				TSharedPtr<SVerticalBox> VerticalBox = SNew(SVerticalBox);
+
+				TSharedPtr<SBorder> ImageBorder = SNew(SBorder);
+
+				FSlateBrush* BorderImage = new FSlateBrush();
+				BorderImage->DrawAs = ESlateBrushDrawType::Type::RoundedBox;
+				FSlateBrushOutlineSettings OutlineSettings{};
+				OutlineSettings.CornerRadii = FVector4{ 5,5,5,5 };
+				OutlineSettings.RoundingType = ESlateBrushRoundingType::Type::FixedRadius;
+				BorderImage->OutlineSettings = OutlineSettings;
+
+
+
+				FSlateBrush* ThumbnailBrush = new FSlateBrush();
+				ThumbnailBrush->SetResourceObject(TableData.Image);
+
+				if (UTexture2D* newThumbnail = Cast<UTexture2D>(TableData.Image))
+				{
+					//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Success");
+
+					ThumbnailBrush->SetImageSize(FVector2D(ImageSize));
+					TSharedPtr<SImage> ThumbnailImage = SNew(SImage).Image(ThumbnailBrush).OnMouseButtonDown_Lambda([this, TableData](const FGeometry& InGeometry, const FPointerEvent& MouseEvent) {
+						if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
+							OnStaticMeshSelected.ExecuteIfBound(TableData);
+							return FReply::Handled();
+						}
+						return FReply::Unhandled();
+						}).Cursor(EMouseCursor::Hand);
+
+						ImageBorder->SetContent(ThumbnailImage.ToSharedRef());
+						ImageBorder->SetBorderImage(BorderImage);
+						ImageBorder->SetBorderBackgroundColor(FColor::Cyan);
+
+						VerticalBox->AddSlot()
+							[
+								ImageBorder.ToSharedRef()
+							];
+				}
+
+				ScrollBox->AddSlot().VAlign(EVerticalAlignment::VAlign_Center).Padding(FVector2D(5))
+					[
+						VerticalBox.ToSharedRef()
+					];
+			}
+			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Doors");
+
+		}
+	}
+
+	RootVerticalBox->AddSlot().AutoHeight().HAlign(EHorizontalAlignment::HAlign_Center)
+		[
+			HeadText.ToSharedRef()
+		];
+
+	RootVerticalBox->AddSlot().AutoHeight()
+		[
+			ScrollBox.ToSharedRef()
+		];
+}
+
+void SSScrollBoxWidget::CreateSofaScrollBox()
+{
+	if (DataAssetManager.IsValid()) {
+		for (auto SofaData : DataAssetManager->SofaArray) {
+
+			if (SofaData.Image) {
+				TSharedPtr<SVerticalBox> VerticalBox = SNew(SVerticalBox);
+
+				TSharedPtr<SBorder> ImageBorder = SNew(SBorder);
+
+				FSlateBrush* BorderImage = new FSlateBrush();
+				BorderImage->DrawAs = ESlateBrushDrawType::Type::RoundedBox;
+				FSlateBrushOutlineSettings OutlineSettings{};
+				OutlineSettings.CornerRadii = FVector4{ 5,5,5,5 };
+				OutlineSettings.RoundingType = ESlateBrushRoundingType::Type::FixedRadius;
+				BorderImage->OutlineSettings = OutlineSettings;
+
+
+
+				FSlateBrush* ThumbnailBrush = new FSlateBrush();
+				ThumbnailBrush->SetResourceObject(SofaData.Image);
+
+				if (UTexture2D* newThumbnail = Cast<UTexture2D>(SofaData.Image))
+				{
+					//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Success");
+
+					ThumbnailBrush->SetImageSize(FVector2D(ImageSize));
+					TSharedPtr<SImage> ThumbnailImage = SNew(SImage).Image(ThumbnailBrush).OnMouseButtonDown_Lambda([this, SofaData](const FGeometry& InGeometry, const FPointerEvent& MouseEvent) {
+						if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
+							OnStaticMeshSelected.ExecuteIfBound(SofaData);
+							return FReply::Handled();
+						}
+						return FReply::Unhandled();
+						}).Cursor(EMouseCursor::Hand);
+
+						ImageBorder->SetContent(ThumbnailImage.ToSharedRef());
+						ImageBorder->SetBorderImage(BorderImage);
+						ImageBorder->SetBorderBackgroundColor(FColor::Cyan);
+
+						VerticalBox->AddSlot()
+							[
+								ImageBorder.ToSharedRef()
+							];
+				}
+
+				ScrollBox->AddSlot().VAlign(EVerticalAlignment::VAlign_Center).Padding(FVector2D(5))
+					[
+						VerticalBox.ToSharedRef()
+					];
+			}
+			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Doors");
+
+		}
+	}
+
+	RootVerticalBox->AddSlot().AutoHeight().HAlign(EHorizontalAlignment::HAlign_Center)
+		[
+			HeadText.ToSharedRef()
+		];
+
+	RootVerticalBox->AddSlot().AutoHeight()
+		[
+			ScrollBox.ToSharedRef()
+		];
+}
+
+
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
+
