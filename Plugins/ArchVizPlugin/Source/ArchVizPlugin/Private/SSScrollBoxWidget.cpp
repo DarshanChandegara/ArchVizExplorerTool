@@ -76,6 +76,13 @@ void SSScrollBoxWidget::CreateScrollBox()
 		CreateSofaScrollBox();
 		break;
 
+	case EAssetType::WallInterior:
+		CreateWallInteriorScrollBox();
+		break;
+
+	case EAssetType::CeilInterior:
+		CreateCeilInteriorScrollBox();
+		break;
 	}
 
 	
@@ -450,6 +457,136 @@ void SSScrollBoxWidget::CreateSofaScrollBox()
 					TSharedPtr<SImage> ThumbnailImage = SNew(SImage).Image(ThumbnailBrush).OnMouseButtonDown_Lambda([this, SofaData](const FGeometry& InGeometry, const FPointerEvent& MouseEvent) {
 						if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
 							OnStaticMeshSelected.ExecuteIfBound(SofaData);
+							return FReply::Handled();
+						}
+						return FReply::Unhandled();
+						}).Cursor(EMouseCursor::Hand);
+
+						ImageBorder->SetContent(ThumbnailImage.ToSharedRef());
+						ImageBorder->SetBorderImage(BorderImage);
+						ImageBorder->SetBorderBackgroundColor(FColor::Cyan);
+
+						VerticalBox->AddSlot()
+							[
+								ImageBorder.ToSharedRef()
+							];
+				}
+
+				ScrollBox->AddSlot().VAlign(EVerticalAlignment::VAlign_Center).Padding(FVector2D(5))
+					[
+						VerticalBox.ToSharedRef()
+					];
+			}
+			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Doors");
+
+		}
+	}
+
+	RootVerticalBox->AddSlot().AutoHeight().HAlign(EHorizontalAlignment::HAlign_Center)
+		[
+			HeadText.ToSharedRef()
+		];
+
+	RootVerticalBox->AddSlot().AutoHeight()
+		[
+			ScrollBox.ToSharedRef()
+		];
+}
+
+void SSScrollBoxWidget::CreateWallInteriorScrollBox() {
+	if (DataAssetManager.IsValid()) {
+		for (auto WallInteriorData : DataAssetManager->WallInteriorArray) {
+
+			if (WallInteriorData.Image) {
+				TSharedPtr<SVerticalBox> VerticalBox = SNew(SVerticalBox);
+
+				TSharedPtr<SBorder> ImageBorder = SNew(SBorder);
+
+				FSlateBrush* BorderImage = new FSlateBrush();
+				BorderImage->DrawAs = ESlateBrushDrawType::Type::RoundedBox;
+				FSlateBrushOutlineSettings OutlineSettings{};
+				OutlineSettings.CornerRadii = FVector4{ 5,5,5,5 };
+				OutlineSettings.RoundingType = ESlateBrushRoundingType::Type::FixedRadius;
+				BorderImage->OutlineSettings = OutlineSettings;
+
+
+
+				FSlateBrush* ThumbnailBrush = new FSlateBrush();
+				ThumbnailBrush->SetResourceObject(WallInteriorData.Image);
+
+				if (UTexture2D* newThumbnail = Cast<UTexture2D>(WallInteriorData.Image))
+				{
+					//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Success");
+
+					ThumbnailBrush->SetImageSize(FVector2D(ImageSize));
+					TSharedPtr<SImage> ThumbnailImage = SNew(SImage).Image(ThumbnailBrush).OnMouseButtonDown_Lambda([this, WallInteriorData](const FGeometry& InGeometry, const FPointerEvent& MouseEvent) {
+						if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
+							OnStaticMeshSelected.ExecuteIfBound(WallInteriorData);
+							return FReply::Handled();
+						}
+						return FReply::Unhandled();
+						}).Cursor(EMouseCursor::Hand);
+
+						ImageBorder->SetContent(ThumbnailImage.ToSharedRef());
+						ImageBorder->SetBorderImage(BorderImage);
+						ImageBorder->SetBorderBackgroundColor(FColor::Cyan);
+
+						VerticalBox->AddSlot()
+							[
+								ImageBorder.ToSharedRef()
+							];
+				}
+
+				ScrollBox->AddSlot().VAlign(EVerticalAlignment::VAlign_Center).Padding(FVector2D(5))
+					[
+						VerticalBox.ToSharedRef()
+					];
+			}
+			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Doors");
+
+		}
+	}
+
+	RootVerticalBox->AddSlot().AutoHeight().HAlign(EHorizontalAlignment::HAlign_Center)
+		[
+			HeadText.ToSharedRef()
+		];
+
+	RootVerticalBox->AddSlot().AutoHeight()
+		[
+			ScrollBox.ToSharedRef()
+		];
+}
+
+void SSScrollBoxWidget::CreateCeilInteriorScrollBox() {
+	if (DataAssetManager.IsValid()) {
+		for (auto CeilInteriorData : DataAssetManager->CeilInteriorArray) {
+
+			if (CeilInteriorData.Image) {
+				TSharedPtr<SVerticalBox> VerticalBox = SNew(SVerticalBox);
+
+				TSharedPtr<SBorder> ImageBorder = SNew(SBorder);
+
+				FSlateBrush* BorderImage = new FSlateBrush();
+				BorderImage->DrawAs = ESlateBrushDrawType::Type::RoundedBox;
+				FSlateBrushOutlineSettings OutlineSettings{};
+				OutlineSettings.CornerRadii = FVector4{ 5,5,5,5 };
+				OutlineSettings.RoundingType = ESlateBrushRoundingType::Type::FixedRadius;
+				BorderImage->OutlineSettings = OutlineSettings;
+
+
+
+				FSlateBrush* ThumbnailBrush = new FSlateBrush();
+				ThumbnailBrush->SetResourceObject(CeilInteriorData.Image);
+
+				if (UTexture2D* newThumbnail = Cast<UTexture2D>(CeilInteriorData.Image))
+				{
+					//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Success");
+
+					ThumbnailBrush->SetImageSize(FVector2D(ImageSize));
+					TSharedPtr<SImage> ThumbnailImage = SNew(SImage).Image(ThumbnailBrush).OnMouseButtonDown_Lambda([this, CeilInteriorData](const FGeometry& InGeometry, const FPointerEvent& MouseEvent) {
+						if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
+							OnStaticMeshSelected.ExecuteIfBound(CeilInteriorData);
 							return FReply::Handled();
 						}
 						return FReply::Unhandled();

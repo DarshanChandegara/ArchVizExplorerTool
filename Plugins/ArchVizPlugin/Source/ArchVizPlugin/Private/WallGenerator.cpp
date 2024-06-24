@@ -90,6 +90,8 @@ void AWallGenerator::SetMaterial(UMaterialInterface* Material)
 {
 	for (auto it : WallArray) {
 		if (it) {
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, FString::FromInt(it->GetMaterials().Num()));
+
 			if (it->GetMaterials().Num() == 1) {
 				it->SetMaterial(0 , Material);
 			}
@@ -116,4 +118,25 @@ UStaticMeshComponent* AWallGenerator::GetWallSegment()
 {
 	if (WallSegment) return WallSegment;
 	else return nullptr;
+}
+
+void AWallGenerator::UpdateWallSegment(FVector Location , UStaticMesh* Mesh)
+{
+	auto index = WallArray.Find(WallSegment);
+
+	if (index != INDEX_NONE) {
+		WallArray[index]->DestroyComponent();
+		WallSegment->SetStaticMesh(Mesh);
+		WallSegment->RegisterComponent();
+		WallSegment->AttachToComponent(Scene, FAttachmentTransformRules::KeepRelativeTransform);
+		WallSegment->SetRelativeLocation(Location);
+
+		WallArray[index] = WallSegment;
+	}
+}
+
+void AWallGenerator::EndPlay(EEndPlayReason::Type Reason)
+{
+	ClearWalls();
+	Super::EndPlay(Reason);
 }

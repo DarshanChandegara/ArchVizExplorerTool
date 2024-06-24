@@ -38,7 +38,8 @@ UENUM()
 enum class EInteriorType :int8 {
 	Chair , 
 	Table , 
-	Sofa
+	Sofa ,
+	WallInterior
 };
 
 UCLASS()
@@ -151,6 +152,9 @@ private:
 
 	UFUNCTION()
 	void RoofMode();
+		
+	UFUNCTION()
+	void FloorMode();
 
 	UFUNCTION()
 	void ViewMode();
@@ -194,6 +198,10 @@ private:
 	UFUNCTION()
 	void HandleRoadMaterialSelect(const FRoadMaterial& WallData);
 
+	// Interior
+
+	void InteriorLeftClickFunction();
+
 	// Interior UI
 
 	UFUNCTION()
@@ -205,8 +213,8 @@ private:
 	UFUNCTION()
 	void SofaButtonClick();
 
-	//UFUNCTION()
-	//void HandleChairSelect(const FChairType& ChairData);
+	UFUNCTION()
+	void WallInteriorButtonClick();
 
 	UFUNCTION()
 	void HandleStaticMeshSelect(const FStaticMeshtype& MeshData);
@@ -256,6 +264,9 @@ public:
 	ARoofGenerator* Roof;
 
 	UPROPERTY()
+	ARoofGenerator* Floor;
+
+	UPROPERTY()
 	UInputMappingContext* WallGenerationMapping;
 
 	UPROPERTY()
@@ -274,13 +285,24 @@ public:
 	UInputAction* WallGenerateAction;
 
 	UPROPERTY()
-	UInputAction* RotateAction;
+	UInputAction* RotateActionE;
+
+	UPROPERTY()
+	UInputAction* RotateActionR;
 
 	UPROPERTY()
 	UInputMappingContext* DoorMapping;
 
 	UPROPERTY()
 	UInputAction* LeftClickAction;
+
+	// Interior
+
+	UPROPERTY()
+	UInputMappingContext* InteriorMapping;
+
+	UPROPERTY()
+	UInputAction* InteriorLeftClickAction;
 
 	// Wall UI
 
@@ -342,7 +364,8 @@ public:
 	
 	// Wall
 
-	void RotateFunction();
+	void RotateFunctionR();
+	void RotateFunctionE();
 
 	// Mode Change
 

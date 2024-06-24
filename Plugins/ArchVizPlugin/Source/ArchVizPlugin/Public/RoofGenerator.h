@@ -15,11 +15,20 @@ class ARCHVIZPLUGIN_API ARoofGenerator : public AActor
 	UPROPERTY()
 	UProceduralMeshComponent* Roof;
 	
+	UPROPERTY()
+	UProceduralMeshComponent* Floor;
+
+	UPROPERTY()
+	USceneComponent* Scene;
+	
 public:	
 	ARoofGenerator();
 
 	UFUNCTION(BlueprintCallable)
 	void GenerateRoof(FVector Dimensions, UMaterialInterface* Material , FVector Offset = FVector::ZeroVector);
+
+	UFUNCTION(BlueprintCallable)
+	void GenerateFloor(FVector Dimensions, UMaterialInterface* Material , FVector Offset = FVector::ZeroVector);
 
 protected:
 	virtual void BeginPlay() override;

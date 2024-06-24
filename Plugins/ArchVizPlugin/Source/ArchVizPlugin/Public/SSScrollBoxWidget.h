@@ -14,7 +14,9 @@ enum class EAssetType : int8 {
 	WallMaterial,
 	Chair,
 	Table,
-	sofa
+	sofa ,
+	WallInterior ,
+	CeilInterior
 };
 
 DECLARE_DELEGATE_OneParam(FOnDoorSelected, const FDoorType& DoorData)
@@ -66,6 +68,8 @@ public:
 	void CreateChairScrollBox();
 	void CreateTableScrollBox();
 	void CreateSofaScrollBox();
+	void CreateWallInteriorScrollBox();
+	void CreateCeilInteriorScrollBox();
 
 };
 

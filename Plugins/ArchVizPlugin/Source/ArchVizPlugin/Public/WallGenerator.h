@@ -18,12 +18,14 @@ class ARCHVIZPLUGIN_API AWallGenerator : public AActor
 	UPROPERTY()
 	UStaticMeshComponent* WallSegment;
 
-	TArray<UStaticMeshComponent*> WallArray;
+	
 	
 public:	
 
 	UPROPERTY(EditAnywhere , BlueprintReadWrite)
 	UStaticMesh* WallMesh;
+
+	TArray<UStaticMeshComponent*> WallArray;
 
 protected:
 	virtual void BeginPlay() override;
@@ -47,5 +49,9 @@ public:
 
 	void SetWallSegment(UStaticMeshComponent* Segment);
 	UStaticMeshComponent* GetWallSegment();
+
+	void UpdateWallSegment(FVector Location, UStaticMesh* Mesh);
+
+	void EndPlay(EEndPlayReason::Type Reason) override;
 
 };
