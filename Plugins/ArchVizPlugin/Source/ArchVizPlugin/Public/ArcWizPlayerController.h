@@ -38,8 +38,12 @@ UENUM()
 enum class EInteriorType :int8 {
 	Chair , 
 	Table , 
+<<<<<<< HEAD
 	Sofa ,
 	WallInterior
+=======
+	Sofa
+>>>>>>> origin/master
 };
 
 UCLASS()
@@ -198,10 +202,13 @@ private:
 	UFUNCTION()
 	void HandleRoadMaterialSelect(const FRoadMaterial& WallData);
 
+<<<<<<< HEAD
 	// Interior
 
 	void InteriorLeftClickFunction();
 
+=======
+>>>>>>> origin/master
 	// Interior UI
 
 	UFUNCTION()
@@ -213,8 +220,13 @@ private:
 	UFUNCTION()
 	void SofaButtonClick();
 
+<<<<<<< HEAD
 	UFUNCTION()
 	void WallInteriorButtonClick();
+=======
+	//UFUNCTION()
+	//void HandleChairSelect(const FChairType& ChairData);
+>>>>>>> origin/master
 
 	UFUNCTION()
 	void HandleStaticMeshSelect(const FStaticMeshtype& MeshData);

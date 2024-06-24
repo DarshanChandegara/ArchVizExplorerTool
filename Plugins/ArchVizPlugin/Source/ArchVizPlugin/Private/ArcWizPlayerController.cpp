@@ -213,10 +213,16 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 
 	case EMode::RoadMode:
 	{
+<<<<<<< HEAD
 		if (IsValid(Road)) Road->Destroy();
 		if (IsValid(Wall) && bWallMode) Wall->Destroy();
 		if (IsValid(Roof) && bRoofMode) Roof->Destroy();
 		if (IsValid(Interior)) Interior->Destroy();
+=======
+		if (Wall && bWallMode) Wall->Destroy();
+		if (Roof && bRoofMode) Roof->Destroy();
+		if (Interior) Interior->Destroy();
+>>>>>>> origin/master
 		isMoving = false;
 
 		WallWidget->RemoveFromParent();
@@ -252,11 +258,16 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 
 	case EMode::HouseMode:
 	{
+<<<<<<< HEAD
 		if (IsValid(Wall)) Wall->Destroy();
 		if (IsValid(Roof)) Roof->Destroy();
 		if (IsValid(Floor)) Floor->Destroy();
 		if (IsValid(Road)) Road->DeHighlightRoad();
 		if (IsValid(Interior)) Interior->Destroy();
+=======
+		if (Road) Road->DeHighlightRoad();
+		if (Interior) Interior->Destroy();
+>>>>>>> origin/master
 
 		RoadWidget->RemoveFromParent();
 		MaterialWidget->RemoveFromParent();
@@ -322,11 +333,17 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 			InteriorWidget->ChairButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::ChairButtonClick);
 			InteriorWidget->TableButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::TableButtonClick);
 			InteriorWidget->SofaButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::SofaButtonClick);
+<<<<<<< HEAD
 			InteriorWidget->WallInterior->OnClicked.AddDynamic(this , &AArcWizPlayerController::WallInteriorButtonClick);
 			InteriorWidget->ChairScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 			InteriorWidget->TableScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 			InteriorWidget->SofaScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 			InteriorWidget->WallInteriorScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
+=======
+			InteriorWidget->ChairScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
+			InteriorWidget->TableScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
+			InteriorWidget->SofaScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
+>>>>>>> origin/master
 		}
 
 		ULocalPlayer* LocalPlayer = GetLocalPlayer();
@@ -351,10 +368,16 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 	case EMode::MaterialMode:
 	{
 		isMoving = false;
+<<<<<<< HEAD
 		if (IsValid(Wall) && bWallMode) Wall->Destroy();
 		if (IsValid(Roof) && bRoofMode) Roof->Destroy();
 		if (IsValid(Floor) && bFloorMode) Floor->Destroy();
 		if (IsValid(Interior)) Interior->Destroy();
+=======
+		if (Wall && bWallMode) Wall->Destroy();
+		if (Roof && bRoofMode) Roof->Destroy();
+		if (Interior) Interior->Destroy();
+>>>>>>> origin/master
 
 		WallWidget->RemoveFromParent();
 		RoadWidget->RemoveFromParent();
@@ -517,6 +540,7 @@ void AArcWizPlayerController::RotateFunctionR()
 		Wall->SetActorRelativeRotation(Wall->GetActorRotation() + FRotator(0, 90, 0));
 	}
 
+<<<<<<< HEAD
 	if (IsValid(Roof)) {
 		Roof->SetActorRelativeRotation(Roof->GetActorRotation() + FRotator(0, 90, 0));
 	}
@@ -526,6 +550,13 @@ void AArcWizPlayerController::RotateFunctionR()
 	}
 
 	if (IsValid(Interior)) {
+=======
+	if (Roof) {
+		Roof->SetActorRelativeRotation(Roof->GetActorRotation() + FRotator(0, 90, 0));
+	}
+
+	if (Interior) {
+>>>>>>> origin/master
 		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, 30, 0));
 	}
 }
@@ -596,7 +627,10 @@ void AArcWizPlayerController::SetInteriorModeVisibility()
 	InteriorWidget->ChairScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 	InteriorWidget->TableScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 	InteriorWidget->SofaScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+<<<<<<< HEAD
 	InteriorWidget->WallInteriorScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+=======
+>>>>>>> origin/master
 
 	switch (InteriorType) {
 	case EInteriorType::Chair:
@@ -610,10 +644,13 @@ void AArcWizPlayerController::SetInteriorModeVisibility()
 	case EInteriorType::Sofa:
 		InteriorWidget->SofaScrollBox->SetVisibility(ESlateVisibility::Visible);
 		break;
+<<<<<<< HEAD
 
 	case EInteriorType::WallInterior:
 		InteriorWidget->WallInteriorScrollBox->SetVisibility(ESlateVisibility::Visible);
 		break;
+=======
+>>>>>>> origin/master
 	}
 }
 
@@ -692,6 +729,10 @@ void AArcWizPlayerController::WallMode()
 
 	HouseConstructionMode = EHouseConstructionMode::Wall;
 	SetHouseModeVisibility();
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
 	isMoving = true;
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
@@ -753,6 +794,7 @@ void AArcWizPlayerController::RoofMode()
 
 	HouseConstructionMode = EHouseConstructionMode::Roof;
 	SetHouseModeVisibility();
+<<<<<<< HEAD
 	isMoving = true;
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
@@ -785,6 +827,8 @@ void AArcWizPlayerController::FloorMode()
 
 	HouseConstructionMode = EHouseConstructionMode::Floor;
 	SetHouseModeVisibility();
+=======
+>>>>>>> origin/master
 	isMoving = true;
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
@@ -1295,6 +1339,31 @@ void AArcWizPlayerController::WallInteriorButtonClick()
 void AArcWizPlayerController::HandleStaticMeshSelect(const FStaticMeshtype& MeshData)
 {
 	if (IsValid(Interior)) {
+		Interior->SetStaticMesh(MeshData.StaticMesh);
+	}
+}
+
+void AArcWizPlayerController::ChairButtonClick()
+{
+	InteriorType = EInteriorType::Chair;
+	SetInteriorModeVisibility();
+}
+
+void AArcWizPlayerController::TableButtonClick()
+{
+	InteriorType = EInteriorType::Table;
+	SetInteriorModeVisibility();
+}
+
+void AArcWizPlayerController::SofaButtonClick()
+{
+	InteriorType = EInteriorType::Sofa;
+	SetInteriorModeVisibility();
+}
+
+void AArcWizPlayerController::HandleStaticMeshSelect(const FStaticMeshtype& MeshData)
+{
+	if (Interior) {
 		Interior->SetStaticMesh(MeshData.StaticMesh);
 	}
 }
