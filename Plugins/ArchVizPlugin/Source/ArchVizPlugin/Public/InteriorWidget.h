@@ -26,15 +26,14 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* SofaButton;
-<<<<<<< HEAD
+
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* WallInterior;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* CeilInterior;
-=======
->>>>>>> origin/master
+
 	
 	UPROPERTY(meta = (BindWidget))
 	UMyScrollBoxWidget* ChairScrollBox;
@@ -44,13 +43,12 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UMyScrollBoxWidget* SofaScrollBox;
-<<<<<<< HEAD
+
 
 	UPROPERTY(meta = (BindWidget))
 	UMyScrollBoxWidget* WallInteriorScrollBox;
 
 	UPROPERTY(meta = (BindWidget))
 	UMyScrollBoxWidget* CeilInteriorScrollBox;
-=======
->>>>>>> origin/master
+
 };

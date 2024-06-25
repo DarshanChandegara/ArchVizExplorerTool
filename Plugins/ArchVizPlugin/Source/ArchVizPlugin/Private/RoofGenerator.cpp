@@ -263,3 +263,9 @@ void ARoofGenerator::DeHighlightRoof()
 	Floor->SetRenderCustomDepth(false);
 }
 
+void ARoofGenerator::SetMaterial(UMaterialInterface* Material)
+{
+	Roof->SetMaterial(0, Material);
+	Floor->SetMaterial(0, Material);
+}
+

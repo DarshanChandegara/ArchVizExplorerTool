@@ -16,6 +16,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	UProceduralMeshComponent* Road;
 
+	UPROPERTY()
+	FVector Size;
+
 protected:
 	virtual void BeginPlay() override;
 

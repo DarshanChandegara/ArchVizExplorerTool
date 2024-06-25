@@ -25,7 +25,7 @@ public:
 	ARoofGenerator();
 
 	UFUNCTION(BlueprintCallable)
-	void GenerateRoof(FVector Dimensions, UMaterialInterface* Material , FVector Offset = FVector::ZeroVector);
+	void GenerateRoof(FVector Dimensions, UMaterialInterface* Material , FVector Offset = FVector(0,0,300));
 
 	UFUNCTION(BlueprintCallable)
 	void GenerateFloor(FVector Dimensions, UMaterialInterface* Material , FVector Offset = FVector::ZeroVector);
@@ -39,5 +39,7 @@ public:
 	void HighlightRoof();
 
 	void DeHighlightRoof();
+
+	void SetMaterial(UMaterialInterface* Material);
 
 };

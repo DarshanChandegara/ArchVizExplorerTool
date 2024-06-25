@@ -12,8 +12,7 @@ class ARCHVIZPLUGIN_API AWallGenerator : public AActor
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
-	USceneComponent* Scene;
+
 
 	UPROPERTY()
 	UStaticMeshComponent* WallSegment;
@@ -21,6 +20,9 @@ class ARCHVIZPLUGIN_API AWallGenerator : public AActor
 	
 	
 public:	
+
+	UPROPERTY()
+	USceneComponent* Scene;
 
 	UPROPERTY(EditAnywhere , BlueprintReadWrite)
 	UStaticMesh* WallMesh;

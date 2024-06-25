@@ -36,7 +36,7 @@ void ARoadGenerator::GenerateRoad(FVector Dimensions, FVector Offset, UMaterialI
 	TArray<FLinearColor> VertexColors;
 	TArray<FProcMeshTangent> Tangents;
 
-
+	Size = Dimensions;
 	//Front
 	Vertices.Add(FVector(0, Dimensions.Y, 0));
 	Vertices.Add(FVector(0, Dimensions.Y, Dimensions.Z));

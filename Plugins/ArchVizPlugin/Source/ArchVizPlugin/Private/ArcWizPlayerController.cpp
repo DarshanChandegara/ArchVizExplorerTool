@@ -5,6 +5,7 @@
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
 #include <Kismet/KismetMathLibrary.h>
+#include "Kismet/GameplayStatics.h"
 
 
 void AArcWizPlayerController::SetupInputComponent()
@@ -208,22 +209,16 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 	else if (mode == "Interior Design") ModeType = EMode::InteriorMode;
 	else ModeType = EMode::MaterialMode;
 
-
 	switch (ModeType) {
 
 	case EMode::RoadMode:
 	{
-<<<<<<< HEAD
-		if (IsValid(Road)) Road->Destroy();
-		if (IsValid(Wall) && bWallMode) Wall->Destroy();
-		if (IsValid(Roof) && bRoofMode) Roof->Destroy();
-		if (IsValid(Interior)) Interior->Destroy();
-=======
-		if (Wall && bWallMode) Wall->Destroy();
-		if (Roof && bRoofMode) Roof->Destroy();
-		if (Interior) Interior->Destroy();
->>>>>>> origin/master
+		CleanUp();
+		bRoadMode = true;
 		isMoving = false;
+
+		HouseConstructionMode = EHouseConstructionMode::none;
+		SetHouseModeVisibility();
 
 		WallWidget->RemoveFromParent();
 		MaterialWidget->RemoveFromParent();
@@ -258,24 +253,16 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 
 	case EMode::HouseMode:
 	{
-<<<<<<< HEAD
-		if (IsValid(Wall)) Wall->Destroy();
-		if (IsValid(Roof)) Roof->Destroy();
-		if (IsValid(Floor)) Floor->Destroy();
+		CleanUp();
 		if (IsValid(Road)) Road->DeHighlightRoad();
-		if (IsValid(Interior)) Interior->Destroy();
-=======
-		if (Road) Road->DeHighlightRoad();
-		if (Interior) Interior->Destroy();
->>>>>>> origin/master
+		HouseConstructionMode = EHouseConstructionMode::none;
+		SetHouseModeVisibility();
 
 		RoadWidget->RemoveFromParent();
 		MaterialWidget->RemoveFromParent();
 		InteriorWidget->RemoveFromParent();
 		WallWidget->AddToViewport();
 
-		HouseConstructionMode = EHouseConstructionMode::View;
-		SetHouseModeVisibility();
 		if (WallWidget) {
 			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Valid");
 			WallWidget->WallButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::WallMode);
@@ -299,6 +286,7 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 			WallWidget->MoveButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::MoveObject);
 
 			WallWidget->DoorScrollBox->OnDoorSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleDoorSelect);
+			WallWidget->DeleteDoorButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::DeleteDoor);
 
 		}
 		ULocalPlayer* LocalPlayer = GetLocalPlayer();
@@ -319,31 +307,33 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 
 	case EMode::InteriorMode:
 	{
-		if (IsValid(Wall) && bWallMode) Wall->Destroy();
-		if (IsValid(Roof) && bRoofMode) Roof->Destroy();
-		if (IsValid(Floor) && bFloorMode) Floor->Destroy();
+		CleanUp();
+		bInteriorMode = true;
+		if (IsValid(Road)) Road->DeHighlightRoad();
+		if (IsValid(Road) && bRoadMode) Road->Destroy();
+
+		HouseConstructionMode = EHouseConstructionMode::none;
+		SetHouseModeVisibility();
 
 		WallWidget->RemoveFromParent();
 		MaterialWidget->RemoveFromParent();
 		RoadWidget->RemoveFromParent();
 		InteriorWidget->AddToViewport();
-		isMoving = true;
 
 		if (InteriorWidget) {
 			InteriorWidget->ChairButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::ChairButtonClick);
 			InteriorWidget->TableButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::TableButtonClick);
 			InteriorWidget->SofaButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::SofaButtonClick);
-<<<<<<< HEAD
 			InteriorWidget->WallInterior->OnClicked.AddDynamic(this , &AArcWizPlayerController::WallInteriorButtonClick);
+			InteriorWidget->CeilInterior->OnClicked.AddDynamic(this , &AArcWizPlayerController::CeilInteriorButtonClick);
 			InteriorWidget->ChairScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 			InteriorWidget->TableScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 			InteriorWidget->SofaScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 			InteriorWidget->WallInteriorScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
-=======
 			InteriorWidget->ChairScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 			InteriorWidget->TableScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 			InteriorWidget->SofaScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
->>>>>>> origin/master
+			InteriorWidget->CeilInteriorScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 		}
 
 		ULocalPlayer* LocalPlayer = GetLocalPlayer();
@@ -367,17 +357,13 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 
 	case EMode::MaterialMode:
 	{
+		CleanUp();
+		bMaterialMode = true;
 		isMoving = false;
-<<<<<<< HEAD
-		if (IsValid(Wall) && bWallMode) Wall->Destroy();
-		if (IsValid(Roof) && bRoofMode) Roof->Destroy();
-		if (IsValid(Floor) && bFloorMode) Floor->Destroy();
-		if (IsValid(Interior)) Interior->Destroy();
-=======
-		if (Wall && bWallMode) Wall->Destroy();
-		if (Roof && bRoofMode) Roof->Destroy();
-		if (Interior) Interior->Destroy();
->>>>>>> origin/master
+		if (IsValid(Road) && bRoadMode) Road->Destroy();
+
+		HouseConstructionMode = EHouseConstructionMode::none;
+		SetHouseModeVisibility();
 
 		WallWidget->RemoveFromParent();
 		RoadWidget->RemoveFromParent();
@@ -407,6 +393,173 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 		}
 	}
 	break;
+	}
+}
+
+void AArcWizPlayerController::SaveGame()
+{
+	UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::CreateSaveGameObject(UArchVizSaveGame::StaticClass()));
+
+	if (SavedGameInstance) {
+
+		TArray<AActor*> AllActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld() , ARoadGenerator::StaticClass(), AllActors);
+
+		for (auto actor : AllActors) {
+
+			auto RoadActor = Cast<ARoadGenerator>(actor);
+			if (RoadActor) {
+				FRoadActorProperty RoadData;
+
+				RoadData.RoadTransform = RoadActor->GetTransform();
+				RoadData.Dimenstion = RoadActor->Size;
+				RoadData.Material = RoadActor->Road->GetMaterial(0);
+				SavedGameInstance->RoadActorArray.Add(RoadData);
+				GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Saved Road");
+			}
+		}
+
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), WallGeneratorClass, AllActors);
+
+		for (auto actor : AllActors) {
+
+			auto WallActor = Cast<AWallGenerator>(actor);
+			if (WallActor) {
+				FWallActorProperty WallData;
+
+				WallData.WallTransform = WallActor->GetActorTransform();
+
+				for (UStaticMeshComponent* Mesh : WallActor->WallArray) {
+					WallData.WallWarray.Add(Mesh->GetStaticMesh());
+				}
+
+				auto index = WallActor->WallArray[0]->GetMaterials().Num();
+
+
+				switch (index) {
+				case 1:
+					WallData.Material = WallActor->WallArray[0]->GetMaterial(0);
+					break;
+
+				case 2:
+					WallData.Material = WallActor->WallArray[0]->GetMaterial(1);
+					break;
+
+				case 3:
+					WallData.Material = WallActor->WallArray[0]->GetMaterial(1);
+					break;
+
+				case 4:
+					WallData.Material = WallActor->WallArray[0]->GetMaterial(3);
+					break;
+
+				}
+
+				SavedGameInstance->WallActorArray.Add(WallData);
+				
+				GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Saved Wall");
+			}
+		}
+
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInteriorGenerator::StaticClass(), AllActors);
+
+		for (auto actor : AllActors) {
+
+			auto InteriorActor = Cast<AInteriorGenerator>(actor);
+			if (InteriorActor) {
+				FInteriorActorProperty InteriorData;
+
+				InteriorData.ActorTransform = InteriorActor->GetActorTransform();
+
+				InteriorData.Mesh = InteriorActor->MeshComponent->GetStaticMesh();
+				SavedGameInstance->InteriorActorArray.Add(InteriorData);
+
+				GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Saved Interior");
+			}
+		}
+
+		UGameplayStatics::SaveGameToSlot(SavedGameInstance, TEXT("Slot12"), 0);
+	}
+}
+
+void AArcWizPlayerController::LoadGame()
+{
+	UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::LoadGameFromSlot("Slot12",0));
+
+	if (SavedGameInstance) {
+
+		TArray<AActor*> AllActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARoadGenerator::StaticClass(), AllActors);
+
+		for (auto it : AllActors) it->Destroy();
+
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), WallGeneratorClass, AllActors);
+
+		for (auto it : AllActors) it->Destroy();
+
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInteriorGenerator::StaticClass(), AllActors);
+
+		for (auto it : AllActors) it->Destroy();
+
+		for (auto it : SavedGameInstance->RoadActorArray) {
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Load Roads");
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			auto SpawnActor = GetWorld()->SpawnActor<ARoadGenerator>(ARoadGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+			SpawnActor->GenerateRoad(it.Dimenstion, {0,0,0} ,it.Material);
+			SpawnActor->SetActorTransform(it.RoadTransform);
+
+		}
+
+		for (auto it : SavedGameInstance->WallActorArray) {
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Load Walls");
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			auto SpawnActor = GetWorld()->SpawnActor<AWallGenerator>(WallGeneratorClass, FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+			if (SpawnActor) {
+				SpawnActor->SetActorTransform(it.WallTransform);
+				SpawnActor->ClearWalls();
+
+				for (int32 i = 0; i < it.WallWarray.Num(); i++) {
+
+					UStaticMesh* Mesh = it.WallWarray[i];
+
+					if (Mesh) {
+						UStaticMeshComponent* MeshComponent = NewObject<UStaticMeshComponent>(SpawnActor);
+						if (Mesh) {
+							MeshComponent->SetStaticMesh(Mesh);
+							MeshComponent->RegisterComponent();
+							MeshComponent->AttachToComponent(SpawnActor->Scene, FAttachmentTransformRules::KeepRelativeTransform);
+
+							if (MeshComponent->GetMaterials().Num() > 1) {
+								MeshComponent->SetRelativeRotation(FRotator(0,90,0));
+								MeshComponent->SetWorldScale3D(FVector(0.2, 1.005, 1));
+								MeshComponent->SetRelativeLocation(FVector(i * 300, 0, 0) + FVector(-1, 0, 0));
+							}
+							else {
+								MeshComponent->SetRelativeLocation(FVector(i * 300, 0, 0));
+							}
+							SpawnActor->WallArray.Add(MeshComponent);
+							GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Mesh");
+
+						}
+					}
+					SpawnActor->SetMaterial(it.Material);
+				}
+			}
+		}
+
+		for (auto it : SavedGameInstance->InteriorActorArray) {
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Load Interiors");
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			auto SpawnActor = GetWorld()->SpawnActor<AInteriorGenerator>(AInteriorGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+			SpawnActor->SetActorTransform(it.ActorTransform);
+			SpawnActor->Generate(it.Mesh);
+		}
 	}
 }
 
@@ -540,7 +693,6 @@ void AArcWizPlayerController::RotateFunctionR()
 		Wall->SetActorRelativeRotation(Wall->GetActorRotation() + FRotator(0, 90, 0));
 	}
 
-<<<<<<< HEAD
 	if (IsValid(Roof)) {
 		Roof->SetActorRelativeRotation(Roof->GetActorRotation() + FRotator(0, 90, 0));
 	}
@@ -548,16 +700,9 @@ void AArcWizPlayerController::RotateFunctionR()
 	if (IsValid(Floor)) {
 		Floor->SetActorRelativeRotation(Floor->GetActorRotation() + FRotator(0, -90, 0));
 	}
-
+	
 	if (IsValid(Interior)) {
-=======
-	if (Roof) {
-		Roof->SetActorRelativeRotation(Roof->GetActorRotation() + FRotator(0, 90, 0));
-	}
-
-	if (Interior) {
->>>>>>> origin/master
-		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, 30, 0));
+		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, -90, 0));
 	}
 }
 
@@ -573,6 +718,7 @@ void AArcWizPlayerController::SetHouseModeVisibility()
 	WallWidget->DoorScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 	WallWidget->DeleteButton->SetVisibility(ESlateVisibility::Collapsed);
 	WallWidget->MoveButton->SetVisibility(ESlateVisibility::Collapsed);
+	WallWidget->DeleteDoorButton->SetVisibility(ESlateVisibility::Collapsed);
 
 	bWallMode = false;
 	bRoofMode = false;
@@ -580,6 +726,8 @@ void AArcWizPlayerController::SetHouseModeVisibility()
 	bDoorMode = false;
 	bViewMode = false;
 	bAdjustMode = false;
+	bRoadMode = false;
+
 
 	switch (HouseConstructionMode)
 	{
@@ -619,6 +767,9 @@ void AArcWizPlayerController::SetHouseModeVisibility()
 
 		break;
 
+	case EHouseConstructionMode::none:
+		break;
+
 	}
 }
 
@@ -627,10 +778,8 @@ void AArcWizPlayerController::SetInteriorModeVisibility()
 	InteriorWidget->ChairScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 	InteriorWidget->TableScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 	InteriorWidget->SofaScrollBox->SetVisibility(ESlateVisibility::Collapsed);
-<<<<<<< HEAD
 	InteriorWidget->WallInteriorScrollBox->SetVisibility(ESlateVisibility::Collapsed);
-=======
->>>>>>> origin/master
+	InteriorWidget->CeilInteriorScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 
 	switch (InteriorType) {
 	case EInteriorType::Chair:
@@ -644,14 +793,56 @@ void AArcWizPlayerController::SetInteriorModeVisibility()
 	case EInteriorType::Sofa:
 		InteriorWidget->SofaScrollBox->SetVisibility(ESlateVisibility::Visible);
 		break;
-<<<<<<< HEAD
 
 	case EInteriorType::WallInterior:
 		InteriorWidget->WallInteriorScrollBox->SetVisibility(ESlateVisibility::Visible);
 		break;
-=======
->>>>>>> origin/master
+
+	case EInteriorType::CeilInterior:
+		InteriorWidget->CeilInteriorScrollBox->SetVisibility(ESlateVisibility::Visible);
 	}
+}
+
+void AArcWizPlayerController::CleanUp()
+{
+	if (IsValid(Wall)) {
+
+		Wall->DeHighlightWalls();
+
+		if (bWallMode){
+			Wall->Destroy();
+		}
+		else if (bMaterialMode){
+			Wall = nullptr;
+		}
+	}
+	if (IsValid(Roof)) {
+
+		Roof->DeHighlightRoof();
+		if (bRoofMode){
+			Roof->Destroy();
+		}
+		else if (bMaterialMode){
+			Roof = nullptr;
+		}
+	}
+	if (IsValid(Floor) ) {
+
+		Floor->DeHighlightRoof();
+
+		if (bFloorMode){
+			Floor->Destroy();
+		}
+		else if (bMaterialMode){
+			Floor = nullptr;
+		}
+	}
+	if (IsValid(Interior)) Interior->Destroy();
+
+
+	bRoadMode = false;
+	bMaterialMode = false;
+	bInteriorMode = false;
 }
 
 void AArcWizPlayerController::SpawnAndGenerateRoad(FVector Dimension_)
@@ -729,10 +920,7 @@ void AArcWizPlayerController::WallMode()
 
 	HouseConstructionMode = EHouseConstructionMode::Wall;
 	SetHouseModeVisibility();
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/master
 	isMoving = true;
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
@@ -794,7 +982,6 @@ void AArcWizPlayerController::RoofMode()
 
 	HouseConstructionMode = EHouseConstructionMode::Roof;
 	SetHouseModeVisibility();
-<<<<<<< HEAD
 	isMoving = true;
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
@@ -827,8 +1014,6 @@ void AArcWizPlayerController::FloorMode()
 
 	HouseConstructionMode = EHouseConstructionMode::Floor;
 	SetHouseModeVisibility();
-=======
->>>>>>> origin/master
 	isMoving = true;
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
@@ -915,8 +1100,24 @@ void AArcWizPlayerController::DeleteObject()
 void AArcWizPlayerController::MoveObject()
 {
 	if (IsValid(Wall) || IsValid(Roof) || IsValid(Floor)) {
-		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, "Bind");
+		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, "Bind");
 		isMoving = true;
+	}
+}
+
+void AArcWizPlayerController::DeleteDoor()
+{
+	if (IsValid(Wall)) {
+		auto WallSegment = Wall->GetWallSegment();
+		auto location = WallSegment->GetRelativeLocation();
+		if (IsValid(WallSegment)) {
+			WallSegment->SetStaticMesh(Wall->WallMesh);
+			WallSegment->SetRelativeRotation(FRotator(0, 0, 0));
+			WallSegment->SetRelativeLocation(location);
+			WallSegment->SetRelativeScale3D(FVector(1,1,1));
+		}
+		Wall->DeHighlightWall();
+		Wall = nullptr;
 	}
 }
 
@@ -1063,10 +1264,10 @@ void AArcWizPlayerController::DeSelectFunction()
 
 void AArcWizPlayerController::HandleSegmentChange(float segments)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Bind");
+	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Bind");
 
 	if (IsValid(Wall)) {
-		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Valid Wall");
+		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Valid Wall");
 
 		Wall->GenerateWall(StaticCast<int32>(segments));
 	}
@@ -1225,50 +1426,71 @@ void AArcWizPlayerController::HandleDoorSelect(const FDoorType& DoorData)
 	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Inside Door");
 	if (IsValid(Wall)) {
 		auto WallSegment = Wall->GetWallSegment();
-		UMaterialInterface* material{};
+		//UMaterialInterface* material{};
 		if (WallSegment) {
 			auto location = WallSegment->GetRelativeLocation();
 			auto index = WallSegment->GetMaterials().Num();
-			GEngine->AddOnScreenDebugMessage(-1,5,FColor::Green , FString::FromInt(index));
+			//GEngine->AddOnScreenDebugMessage(-1,5,FColor::Green , FString::FromInt(index));
 
 
 			switch (index) {
 			case 1:
-				material = WallSegment->GetMaterial(0);
+				DefaultMaterial = WallSegment->GetMaterial(0);
 				break;
 
 			case 2:
-				material = WallSegment->GetMaterial(1);
+				DefaultMaterial = WallSegment->GetMaterial(1);
 				break;
 
 			case 3:
-				material = WallSegment->GetMaterial(1);
+				DefaultMaterial = WallSegment->GetMaterial(1);
 				break;
 
 			case 4:
-				material = WallSegment->GetMaterial(3);
+				DefaultMaterial = WallSegment->GetMaterial(3);
 				break;
 
 			}
 
 			
+			//Wall->SetMaterial(DefaultMaterial);
 			WallSegment->SetStaticMesh(DoorData.DoorMesh);
+			//Wall->SetMaterial(DefaultMaterial);
 			WallSegment->SetRelativeRotation(FRotator(0, 90, 0));
 			WallSegment->SetRelativeLocation(location + FVector(-1, 0, 0));
 			WallSegment->SetWorldScale3D(FVector(0.2, 1.005, 1));
 
-			Wall->SetMaterial(material);
 		}
 		Wall->DeHighlightWall();
 		Wall = nullptr;
 	}
 	WallWidget->DoorScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+	WallWidget->DeleteDoorButton->SetVisibility(ESlateVisibility::Visible);
 
 }
 
 void AArcWizPlayerController::HandleWallMaterialSelect(const FWallMaterial& WallData)
 {
-	if (IsValid(Wall)) Wall->SetMaterial(WallData.Material);
+	if (IsValid(Wall))
+	{
+		Wall->SetMaterial(WallData.Material);
+		Wall->DeHighlightWalls();
+		Wall = nullptr;
+	}
+
+	if (IsValid(Floor))
+	{
+		Floor->SetMaterial(WallData.Material);
+		Floor->DeHighlightRoof();
+		Floor = nullptr;
+	}
+
+	if (IsValid(Roof))
+	{
+		Roof->SetMaterial(WallData.Material);
+		Roof->DeHighlightRoof();
+		Roof = nullptr;
+	}
 }
 
 void AArcWizPlayerController::HandleRoadMaterialSelect(const FRoadMaterial& RoadData)
@@ -1291,20 +1513,33 @@ void AArcWizPlayerController::InteriorLeftClickFunction()
 		{
 			auto actor = HitResult.GetActor();
 
-			switch (InteriorType) {
+			if (Cast<AInteriorGenerator>(actor)) {
+				Interior->Destroy();
+				Interior = Cast<AInteriorGenerator>(actor);
+			}
+			else {
+
+				switch (InteriorType) {
 				case EInteriorType::WallInterior:
 				{
 					if (Cast<AWallGenerator>(actor)) {
 						SpawnAndGenerate();
 					}
 				}
-				default:
-					if (IsValid(actor) && HitResult.GetComponent()->GetName() == "Floor") {
-						//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Silver, HitResult.GetComponent()->GetName());
+				break;
+				case EInteriorType::CeilInterior:
+				{
+					if ((IsValid(actor) && HitResult.GetComponent()->GetName() == "Roof")) {
 						SpawnAndGenerate();
 					}
+				}
+				break;
+				default:
+					if (IsValid(actor) && HitResult.GetComponent()->GetName() == "Floor") {
+						SpawnAndGenerate();
+					}
+				}
 			}
-
 			
 		}
 	}
@@ -1336,6 +1571,12 @@ void AArcWizPlayerController::WallInteriorButtonClick()
 	SetInteriorModeVisibility();
 }
 
+void AArcWizPlayerController::CeilInteriorButtonClick()
+{
+	InteriorType = EInteriorType::CeilInterior;
+	SetInteriorModeVisibility();
+}
+
 void AArcWizPlayerController::HandleStaticMeshSelect(const FStaticMeshtype& MeshData)
 {
 	if (IsValid(Interior)) {
@@ -1343,34 +1584,9 @@ void AArcWizPlayerController::HandleStaticMeshSelect(const FStaticMeshtype& Mesh
 	}
 }
 
-void AArcWizPlayerController::ChairButtonClick()
-{
-	InteriorType = EInteriorType::Chair;
-	SetInteriorModeVisibility();
-}
-
-void AArcWizPlayerController::TableButtonClick()
-{
-	InteriorType = EInteriorType::Table;
-	SetInteriorModeVisibility();
-}
-
-void AArcWizPlayerController::SofaButtonClick()
-{
-	InteriorType = EInteriorType::Sofa;
-	SetInteriorModeVisibility();
-}
-
-void AArcWizPlayerController::HandleStaticMeshSelect(const FStaticMeshtype& MeshData)
-{
-	if (Interior) {
-		Interior->SetStaticMesh(MeshData.StaticMesh);
-	}
-}
-
 void AArcWizPlayerController::MaterialSelection()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Emerald, "Left Click");
+	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Emerald, "Left Click");
 	FHitResult HitResult;
 	GetHitResultUnderCursor(ECC_Visibility, true, HitResult);
 
@@ -1388,17 +1604,18 @@ void AArcWizPlayerController::MaterialSelection()
 		if (auto SelectedActor = Cast<ARoofGenerator>(HitResult.GetActor()); SelectedActor) {
 
 			Roof = SelectedActor;
-			Roof->HighlightRoof();
+			SelectedActor->HighlightRoof();
+			MaterialWidget->WallMaterialScrollBox->SetVisibility(ESlateVisibility::Visible);
 		}
 		else if (auto SelectedActor1 = Cast<AWallGenerator>(HitResult.GetActor()); SelectedActor1) {
 
 			Wall = SelectedActor1;
-			Wall->HighlightWalls();
+			SelectedActor1->HighlightWalls();
 			MaterialWidget->WallMaterialScrollBox->SetVisibility(ESlateVisibility::Visible);
 		}
 		else if (auto SelectedActor2 = Cast<ARoadGenerator>(HitResult.GetActor()); SelectedActor2) {
 			Road = SelectedActor2;
-			Road->HighlightRoad();
+			SelectedActor2->HighlightRoad();
 			MaterialWidget->RoadMaterialScrollBox->SetVisibility(ESlateVisibility::Visible);
 
 		}
@@ -1407,14 +1624,14 @@ void AArcWizPlayerController::MaterialSelection()
 
 void AArcWizPlayerController::OnConstructionModeClicked()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "1");
+	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "1");
 	bEditMode = false;
 	RoadWidget->OnConstructionModeClicked();
 }
 
 void AArcWizPlayerController::OnEditorModeClicked()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "1");
+	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "1");
 	bEditMode = true;
 	RoadWidget->OnEditorModeClicked();
 }

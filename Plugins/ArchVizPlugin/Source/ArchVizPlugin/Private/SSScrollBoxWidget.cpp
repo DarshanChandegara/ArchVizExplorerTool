@@ -76,7 +76,6 @@ void SSScrollBoxWidget::CreateScrollBox()
 		CreateSofaScrollBox();
 		break;
 
-<<<<<<< HEAD
 	case EAssetType::WallInterior:
 		CreateWallInteriorScrollBox();
 		break;
@@ -84,8 +83,7 @@ void SSScrollBoxWidget::CreateScrollBox()
 	case EAssetType::CeilInterior:
 		CreateCeilInteriorScrollBox();
 		break;
-=======
->>>>>>> origin/master
+
 	}
 
 	
@@ -496,7 +494,6 @@ void SSScrollBoxWidget::CreateSofaScrollBox()
 		];
 }
 
-<<<<<<< HEAD
 void SSScrollBoxWidget::CreateWallInteriorScrollBox() {
 	if (DataAssetManager.IsValid()) {
 		for (auto WallInteriorData : DataAssetManager->WallInteriorArray) {
@@ -627,8 +624,7 @@ void SSScrollBoxWidget::CreateCeilInteriorScrollBox() {
 		];
 }
 
-=======
->>>>>>> origin/master
+
 
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 

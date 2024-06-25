@@ -11,14 +11,16 @@ class ARCHVIZPLUGIN_API AInteriorGenerator : public AActor
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
-	UStaticMeshComponent* MeshComponent;
+
 	
 public:	
 	AInteriorGenerator();
 
 	UPROPERTY()
 	USceneComponent* Scene;
+
+	UPROPERTY()
+	UStaticMeshComponent* MeshComponent;
 
 
 protected:

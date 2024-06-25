@@ -13,6 +13,7 @@
 #include "MaterialWidget.h"
 #include "InteriorGenerator.h"
 #include "InteriorWidget.h"
+#include "ArchVizSaveGame.h"
 #include "ArcWizPlayerController.generated.h"
 
 UENUM()
@@ -38,12 +39,10 @@ UENUM()
 enum class EInteriorType :int8 {
 	Chair , 
 	Table , 
-<<<<<<< HEAD
 	Sofa ,
-	WallInterior
-=======
-	Sofa
->>>>>>> origin/master
+	WallInterior,
+	CeilInterior
+
 };
 
 UCLASS()
@@ -54,6 +53,8 @@ class ARCHVIZPLUGIN_API AArcWizPlayerController : public APlayerController
 private:
 	// Variables 
 		
+	UPROPERTY()
+	UMaterialInterface* DefaultMaterial;
 
 	bool bWallMode = false;
 	bool bRoofMode = false;
@@ -61,6 +62,9 @@ private:
 	bool bDoorMode = false;
 	bool bViewMode = false;
 	bool bAdjustMode = false;
+	bool bRoadMode = false;
+	bool bMaterialMode = false;
+	bool bInteriorMode = false;
 
 	// Road Generation
 
@@ -104,6 +108,8 @@ private:
 	void SetHouseModeVisibility();
 
 	void SetInteriorModeVisibility();
+
+	void CleanUp();
 	// Road 
 
 	void SpawnAndGenerateRoad(FVector Dimension);
@@ -173,6 +179,9 @@ private:
 	void MoveObject();
 
 	UFUNCTION()
+	void DeleteDoor();
+
+	UFUNCTION()
 	void HandleSegmentChange(float segments);
 
 	UFUNCTION()
@@ -202,13 +211,10 @@ private:
 	UFUNCTION()
 	void HandleRoadMaterialSelect(const FRoadMaterial& WallData);
 
-<<<<<<< HEAD
 	// Interior
 
 	void InteriorLeftClickFunction();
 
-=======
->>>>>>> origin/master
 	// Interior UI
 
 	UFUNCTION()
@@ -220,13 +226,13 @@ private:
 	UFUNCTION()
 	void SofaButtonClick();
 
-<<<<<<< HEAD
 	UFUNCTION()
 	void WallInteriorButtonClick();
-=======
+
+	UFUNCTION()
+	void CeilInteriorButtonClick();
 	//UFUNCTION()
 	//void HandleChairSelect(const FChairType& ChairData);
->>>>>>> origin/master
 
 	UFUNCTION()
 	void HandleStaticMeshSelect(const FStaticMeshtype& MeshData);
@@ -392,5 +398,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void HandleModeChange(FString mode);
+
+	UFUNCTION(BlueprintCallable)
+	void SaveGame();
+
+	UFUNCTION(BlueprintCallable)
+	void LoadGame();
 
 };
