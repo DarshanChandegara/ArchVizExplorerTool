@@ -90,6 +90,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,meta = (BindWidget))
 	UMyScrollBoxWidget* DoorScrollBox;
 
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	UWidgetAnimation* PopUp;
+
 	virtual void NativeConstruct() override;
 
 };

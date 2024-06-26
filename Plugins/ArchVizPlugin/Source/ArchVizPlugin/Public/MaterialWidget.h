@@ -22,4 +22,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	UMyScrollBoxWidget* RoadMaterialScrollBox;
+
+	UPROPERTY(Transient ,meta = (BindWidgetAnim))
+	UWidgetAnimation* PopUp;
 };

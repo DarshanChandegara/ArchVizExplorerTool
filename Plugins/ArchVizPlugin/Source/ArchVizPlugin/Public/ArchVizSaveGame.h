@@ -48,6 +48,23 @@ struct FInteriorActorProperty {
 	UStaticMesh* Mesh;
 };
 
+USTRUCT()
+struct FRoofActorProperty {
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FTransform ActorTransform;
+
+	UPROPERTY()
+	FVector Dimension;
+
+	UPROPERTY()
+	FString ActorType;
+
+	UPROPERTY()
+	UMaterialInterface* Material;
+};
+
 UCLASS()
 class ARCHVIZPLUGIN_API UArchVizSaveGame : public USaveGame
 {
@@ -63,5 +80,8 @@ public:
 
 	UPROPERTY()
 	TArray<FInteriorActorProperty> InteriorActorArray;
+
+	UPROPERTY()
+	TArray<FRoofActorProperty> RoofActorArray;	
 	
 };

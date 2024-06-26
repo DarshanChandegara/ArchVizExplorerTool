@@ -6,6 +6,7 @@
 #include <EnhancedInputSubsystems.h>
 #include <Kismet/KismetMathLibrary.h>
 #include "Kismet/GameplayStatics.h"
+#include <Components/TextBlock.h>
 
 
 void AArcWizPlayerController::SetupInputComponent()
@@ -374,6 +375,8 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 		if (MaterialWidget) {
 			MaterialWidget->WallMaterialScrollBox->OnWallSelectedEvent.BindUObject(this, &AArcWizPlayerController::HandleWallMaterialSelect);
 			MaterialWidget->RoadMaterialScrollBox->OnRoadSelectedEvent.BindUObject(this, &AArcWizPlayerController::HandleRoadMaterialSelect);
+			MaterialWidget->PlayAnimation(MaterialWidget->PopUp);
+
 		}
 
 		ULocalPlayer* LocalPlayer = GetLocalPlayer();
@@ -396,7 +399,7 @@ void AArcWizPlayerController::HandleModeChange(FString mode)
 	}
 }
 
-void AArcWizPlayerController::SaveGame()
+void AArcWizPlayerController::SaveGame(FString Slotname)
 {
 	UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::CreateSaveGameObject(UArchVizSaveGame::StaticClass()));
 
@@ -478,13 +481,35 @@ void AArcWizPlayerController::SaveGame()
 			}
 		}
 
-		UGameplayStatics::SaveGameToSlot(SavedGameInstance, TEXT("Slot12"), 0);
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARoofGenerator::StaticClass(), AllActors);
+
+		for (auto actor : AllActors) {
+
+			auto RoofActor = Cast<ARoofGenerator>(actor);
+			if (RoofActor) {
+				FRoofActorProperty RoofData;
+
+				RoofData.ActorTransform = RoofActor->GetActorTransform();
+				RoofData.Dimension = RoofActor->Dimention;
+				RoofData.ActorType = RoofActor->Actortype;
+				if(RoofActor->Actortype == "Roof")
+					RoofData.Material = RoofActor->Roof->GetMaterial(0);
+				else 
+					RoofData.Material = RoofActor->Floor->GetMaterial(0);
+
+				SavedGameInstance->RoofActorArray.Add(RoofData);
+
+				GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Saved Roof");
+			}
+		}
+
+		UGameplayStatics::SaveGameToSlot(SavedGameInstance, Slotname, 0);
 	}
 }
 
-void AArcWizPlayerController::LoadGame()
+void AArcWizPlayerController::LoadGame(FString Slotname)
 {
-	UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::LoadGameFromSlot("Slot12",0));
+	UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::LoadGameFromSlot(Slotname,0));
 
 	if (SavedGameInstance) {
 
@@ -498,6 +523,10 @@ void AArcWizPlayerController::LoadGame()
 		for (auto it : AllActors) it->Destroy();
 
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInteriorGenerator::StaticClass(), AllActors);
+
+		for (auto it : AllActors) it->Destroy();
+		
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARoofGenerator::StaticClass(), AllActors);
 
 		for (auto it : AllActors) it->Destroy();
 
@@ -560,6 +589,160 @@ void AArcWizPlayerController::LoadGame()
 			SpawnActor->SetActorTransform(it.ActorTransform);
 			SpawnActor->Generate(it.Mesh);
 		}
+
+		for (auto it : SavedGameInstance->RoofActorArray) {
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Load Roofs");
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			auto SpawnActor = GetWorld()->SpawnActor<ARoofGenerator>(ARoofGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+			SpawnActor->SetActorTransform(it.ActorTransform);
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, it.ActorType);
+
+			if (it.ActorType == "Roof")
+				SpawnActor->GenerateRoof(it.Dimension, it.Material, FVector(0, 0, 300));
+			else if (it.ActorType == "Floor")
+				SpawnActor->GenerateFloor(it.Dimension , it.Material);
+		}
+	}
+}
+
+TArray<FString>  AArcWizPlayerController::FindFiles(FString Path, FString Extension)
+{
+	TArray<FString> FileList;
+	IFileManager& FileManager = IFileManager::Get();
+
+	// Ensure the directory path is formatted correctly
+	if (!Path.EndsWith("/"))
+	{
+		Path += "/";
+	}
+
+	// Build the full search path
+	FString FullPath = Path + TEXT("*") + Extension;
+
+	// Find the files
+	FileManager.FindFiles(FileList, *FullPath, true, false);
+
+	return FileList;
+}
+
+void AArcWizPlayerController::AddChilds(UScrollBox* ScrollBox, FString Text)
+{
+	if (ScrollBox)
+	{
+		Scroll = ScrollBox;
+		UButton* Button = NewObject<UButton>(this);
+		UTextBlock* TextBlock = NewObject<UTextBlock>(this);
+		TextBlock->SetText(FText::FromString(Text));
+		Button->AddChild(TextBlock);
+		ScrollBox->AddChild(Button);
+		
+		//Button->SetContent();
+		Button->OnClicked.AddDynamic(this , &AArcWizPlayerController::GetText);
+	}
+}
+
+void AArcWizPlayerController::GetText()
+{
+	UButton* Button = Cast<UButton>(Scroll->GetAllChildren()[0]);
+
+	if (Button) {
+		UTextBlock* TextBlock = Cast<UTextBlock>(Button->GetAllChildren()[0]);
+		if (TextBlock) {
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Black,TextBlock->GetText().ToString());
+		}
+	}
+}
+
+void AArcWizPlayerController::CleanUp()
+{
+	if (IsValid(Wall)) {
+
+		Wall->DeHighlightWalls();
+
+		if (bWallMode) {
+			Wall->Destroy();
+		}
+		else if (bMaterialMode) {
+			Wall = nullptr;
+		}
+	}
+	if (IsValid(Roof)) {
+
+		Roof->DeHighlightRoof();
+		if (bRoofMode) {
+			Roof->Destroy();
+		}
+		else if (bMaterialMode) {
+			Roof = nullptr;
+		}
+	}
+	if (IsValid(Floor)) {
+
+		Floor->DeHighlightRoof();
+
+		if (bFloorMode) {
+			Floor->Destroy();
+		}
+		else if (bMaterialMode) {
+			Floor = nullptr;
+		}
+	}
+	if (IsValid(Interior)) Interior->Destroy();
+
+	if (IsValid(Road)) {
+		Road->DeHighlightRoad();
+	}
+
+	bRoadMode = false;
+	bMaterialMode = false;
+	bInteriorMode = false;
+}
+
+void AArcWizPlayerController::SnapActor(AActor* actor, float SnapValue)
+{
+	auto location = actor->GetActorLocation();
+	location.X = FMath::RoundToFloat(location.X / SnapValue) * SnapValue;
+	location.Y = FMath::RoundToFloat(location.Y / SnapValue) * SnapValue;
+	actor->SetActorLocation(location);
+}
+
+void AArcWizPlayerController::RotateFunctionE()
+{
+	if (IsValid(Wall)) {
+		Wall->SetActorRelativeRotation(Wall->GetActorRotation() + FRotator(0, -90, 0));
+	}
+
+	if (IsValid(Roof)) {
+		Roof->SetActorRelativeRotation(Roof->GetActorRotation() + FRotator(0, -90, 0));
+	}
+	
+	if (IsValid(Floor)) {
+		Floor->SetActorRelativeRotation(Floor->GetActorRotation() + FRotator(0, -90, 0));
+	}
+
+	if (IsValid(Interior)) {
+		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, -30, 0));
+	}
+}
+
+void AArcWizPlayerController::RotateFunctionR()
+{
+	if (IsValid(Wall)) {
+		Wall->SetActorRelativeRotation(Wall->GetActorRotation() + FRotator(0, 90, 0));
+	}
+
+	if (IsValid(Roof)) {
+		Roof->SetActorRelativeRotation(Roof->GetActorRotation() + FRotator(0, 90, 0));
+	}
+
+	if (IsValid(Floor)) {
+		Floor->SetActorRelativeRotation(Floor->GetActorRotation() + FRotator(0, -90, 0));
+	}
+	
+	if (IsValid(Interior)) {
+		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, -90, 0));
 	}
 }
 
@@ -654,25 +837,6 @@ void AArcWizPlayerController::RoadGenerateFucntion()
 	}
 }
 
-void AArcWizPlayerController::RotateFunctionE()
-{
-	if (IsValid(Wall)) {
-		Wall->SetActorRelativeRotation(Wall->GetActorRotation() + FRotator(0, -90, 0));
-	}
-
-	if (IsValid(Roof)) {
-		Roof->SetActorRelativeRotation(Roof->GetActorRotation() + FRotator(0, -90, 0));
-	}
-	
-	if (IsValid(Floor)) {
-		Floor->SetActorRelativeRotation(Floor->GetActorRotation() + FRotator(0, -90, 0));
-	}
-
-	if (IsValid(Interior)) {
-		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, -30, 0));
-	}
-}
-
 void AArcWizPlayerController::NewRoadGenerateFucntion()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Bind");
@@ -687,23 +851,108 @@ void AArcWizPlayerController::NewRoadGenerateFucntion()
 	}
 }
 
-void AArcWizPlayerController::RotateFunctionR()
+float AArcWizPlayerController::GetAngle(FVector V1, FVector V2)
 {
-	if (IsValid(Wall)) {
-		Wall->SetActorRelativeRotation(Wall->GetActorRotation() + FRotator(0, 90, 0));
+	FVector NormVector1 = V1.GetSafeNormal();
+	FVector NormVector2 = V2.GetSafeNormal();
+
+	float DotProduct = FVector::DotProduct(NormVector1, NormVector2);
+
+	DotProduct = FMath::Clamp(DotProduct, -1.0f, 1.0f);
+
+	float AngleRadians = FMath::Acos(DotProduct);
+
+	float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
+
+	return AngleDegrees;
+}
+
+bool AArcWizPlayerController::OnRightOrleft(FVector FirstPoint, FVector SecondPoint, FVector Prev)
+{
+	FVector V1 = Prev - FirstPoint;
+	FVector V2 = Prev - SecondPoint;
+	FVector CrossProduct = FVector::CrossProduct(V1, V2);
+
+	if (CrossProduct.Z > 0)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "Right");
+		return false;
+	}
+	else
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "Left");
+		return true;
+	}
+}
+
+void AArcWizPlayerController::OnConstructionModeClicked()
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "1");
+	bEditMode = false;
+	RoadWidget->OnConstructionModeClicked();
+}
+
+void AArcWizPlayerController::OnEditorModeClicked()
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "1");
+	bEditMode = true;
+	RoadWidget->OnEditorModeClicked();
+}
+
+void AArcWizPlayerController::OnWidthChanged(float width)
+{
+
+	if (width > 700) width = 700;
+	if (IsValid(Road))
+		Road->SetActorScale3D(FVector(1, width / Dimension.Y, 1));
+}
+
+void AArcWizPlayerController::DeleteRoad()
+{
+	if (IsValid(Road))
+		Road->Destroy();
+}
+
+void AArcWizPlayerController::OnXChange(float value)
+{
+	FVector Location;
+	if (IsValid(Road) && bEditMode) {
+		//Location = Road->GetActorLocation();
+		RoadWidget->Location.X = value;
+		Road->SetActorLocation(RoadWidget->Location);
+	}
+}
+
+void AArcWizPlayerController::OnYChange(float value)
+{
+	FVector Location;
+	if (IsValid(Road) && bEditMode) {
+		//Location = Road->GetActorLocation();
+		RoadWidget->Location.Y = value;
+		Road->SetActorLocation(RoadWidget->Location);
+	}
+}
+
+void AArcWizPlayerController::SpawnAndGenerateRoad(FVector Dimension_)
+{
+	FActorSpawnParameters Params;
+	FRotator LookAtRotation;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	if (IsValid(Road)) Road->DeHighlightRoad();
+	auto SpawnActor = GetWorld()->SpawnActor<ARoadGenerator>(ARoadGenerator::StaticClass(), StartLocation, FRotator::ZeroRotator, Params);
+	if (Road = Cast<ARoadGenerator>(SpawnActor); IsValid(Road)) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "Valid Actor");
 	}
 
-	if (IsValid(Roof)) {
-		Roof->SetActorRelativeRotation(Roof->GetActorRotation() + FRotator(0, 90, 0));
-	}
+	Road->GenerateRoad(Dimension_, FVector(0, 0, 0), Material);
 
-	if (IsValid(Floor)) {
-		Floor->SetActorRelativeRotation(Floor->GetActorRotation() + FRotator(0, -90, 0));
-	}
-	
-	if (IsValid(Interior)) {
-		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, -90, 0));
-	}
+	float angle = GetAngle(StartLocation, EndLocation);
+	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Emerald, FString::FromInt(angle));
+
+	LookAtRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, EndLocation);
+	Road->SetActorRotation(LookAtRotation);
+	Road->HighlightRoad();
 }
 
 void AArcWizPlayerController::SetHouseModeVisibility()
@@ -801,112 +1050,6 @@ void AArcWizPlayerController::SetInteriorModeVisibility()
 	case EInteriorType::CeilInterior:
 		InteriorWidget->CeilInteriorScrollBox->SetVisibility(ESlateVisibility::Visible);
 	}
-}
-
-void AArcWizPlayerController::CleanUp()
-{
-	if (IsValid(Wall)) {
-
-		Wall->DeHighlightWalls();
-
-		if (bWallMode){
-			Wall->Destroy();
-		}
-		else if (bMaterialMode){
-			Wall = nullptr;
-		}
-	}
-	if (IsValid(Roof)) {
-
-		Roof->DeHighlightRoof();
-		if (bRoofMode){
-			Roof->Destroy();
-		}
-		else if (bMaterialMode){
-			Roof = nullptr;
-		}
-	}
-	if (IsValid(Floor) ) {
-
-		Floor->DeHighlightRoof();
-
-		if (bFloorMode){
-			Floor->Destroy();
-		}
-		else if (bMaterialMode){
-			Floor = nullptr;
-		}
-	}
-	if (IsValid(Interior)) Interior->Destroy();
-
-
-	bRoadMode = false;
-	bMaterialMode = false;
-	bInteriorMode = false;
-}
-
-void AArcWizPlayerController::SpawnAndGenerateRoad(FVector Dimension_)
-{
-	FActorSpawnParameters Params;
-	FRotator LookAtRotation;
-	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	if (IsValid(Road)) Road->DeHighlightRoad();
-	auto SpawnActor = GetWorld()->SpawnActor<ARoadGenerator>(ARoadGenerator::StaticClass(), StartLocation, FRotator::ZeroRotator, Params);
-	if (Road = Cast<ARoadGenerator>(SpawnActor); IsValid(Road)) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "Valid Actor");
-	}
-
-	Road->GenerateRoad(Dimension_, FVector(0, 0, 0), Material);
-
-	float angle = GetAngle(StartLocation, EndLocation);
-	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Emerald, FString::FromInt(angle));
-
-	LookAtRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, EndLocation);
-	Road->SetActorRotation(LookAtRotation);
-	Road->HighlightRoad();
-}
-
-float AArcWizPlayerController::GetAngle(FVector V1, FVector V2)
-{
-	FVector NormVector1 = V1.GetSafeNormal();
-	FVector NormVector2 = V2.GetSafeNormal();
-
-	float DotProduct = FVector::DotProduct(NormVector1, NormVector2);
-
-	DotProduct = FMath::Clamp(DotProduct, -1.0f, 1.0f);
-
-	float AngleRadians = FMath::Acos(DotProduct);
-
-	float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
-
-	return AngleDegrees;
-}
-
-bool AArcWizPlayerController::OnRightOrleft(FVector FirstPoint, FVector SecondPoint, FVector Prev)
-{
-	FVector V1 = Prev - FirstPoint;
-	FVector V2 = Prev - SecondPoint;
-	FVector CrossProduct = FVector::CrossProduct(V1, V2);
-
-	if (CrossProduct.Z > 0)
-	{
-		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "Right");
-		return false;
-	}
-	else
-	{
-		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "Left");
-		return true;
-	}
-}
-
-void AArcWizPlayerController::SnapActor(AActor* actor, float SnapValue)
-{
-	auto location = actor->GetActorLocation();
-	location.X = FMath::RoundToFloat(location.X / SnapValue) * SnapValue;
-	location.Y = FMath::RoundToFloat(location.Y / SnapValue) * SnapValue;
-	actor->SetActorLocation(location);
 }
 
 void AArcWizPlayerController::WallMode()
@@ -1065,6 +1208,8 @@ void AArcWizPlayerController::AdjustMode()
 {
 	DeSelectFunction();
 
+	WallWidget->PlayAnimation(WallWidget->PopUp);
+
 	isMoving = false;
 	if (IsValid(Wall) && bWallMode) Wall->Destroy();
 	if (IsValid(Roof) && bRoofMode) Roof->Destroy();
@@ -1142,7 +1287,7 @@ void AArcWizPlayerController::SpawnAndGenerate()
 			float z = WallWidget->Height->GetValue();
 
 			if (Roof = Cast<ARoofGenerator>(SpawnActor); IsValid(Roof)) {
-				Roof->GenerateRoof(FVector(x, y, z), Material);
+				Roof->GenerateRoof(FVector(x, y, z), Material , FVector(0,0,300));
 			}
 		}
 		else if(HouseConstructionMode == EHouseConstructionMode::Floor){
@@ -1371,7 +1516,7 @@ void AArcWizPlayerController::HandleLengthChange(float length)
 		float y = WallWidget->Width->GetValue();
 		float z = WallWidget->Height->GetValue();
 
-		Roof->GenerateRoof({ x,y,z }, Material);
+		Roof->GenerateRoof({ x,y,z }, Material , FVector(0,0,300));
 	}
 	
 	if (IsValid(Floor)) {
@@ -1390,7 +1535,7 @@ void AArcWizPlayerController::HandleWidthChange(float width)
 		float y = width;
 		float z = WallWidget->Height->GetValue();
 
-		Roof->GenerateRoof({ x,y,z }, Material);
+		Roof->GenerateRoof({ x,y,z }, Material, FVector(0, 0, 300));
 	}
 	
 	if (IsValid(Floor)) {
@@ -1409,7 +1554,7 @@ void AArcWizPlayerController::HandleHeightChange(float height)
 		float y = WallWidget->Width->GetValue();
 		float z = height;
 
-		Roof->GenerateRoof({ x,y,z }, Material);
+		Roof->GenerateRoof({ x,y,z }, Material, FVector(0, 0, 300));
 	}
 
 	if (IsValid(Floor)) {
@@ -1469,35 +1614,6 @@ void AArcWizPlayerController::HandleDoorSelect(const FDoorType& DoorData)
 
 }
 
-void AArcWizPlayerController::HandleWallMaterialSelect(const FWallMaterial& WallData)
-{
-	if (IsValid(Wall))
-	{
-		Wall->SetMaterial(WallData.Material);
-		Wall->DeHighlightWalls();
-		Wall = nullptr;
-	}
-
-	if (IsValid(Floor))
-	{
-		Floor->SetMaterial(WallData.Material);
-		Floor->DeHighlightRoof();
-		Floor = nullptr;
-	}
-
-	if (IsValid(Roof))
-	{
-		Roof->SetMaterial(WallData.Material);
-		Roof->DeHighlightRoof();
-		Roof = nullptr;
-	}
-}
-
-void AArcWizPlayerController::HandleRoadMaterialSelect(const FRoadMaterial& RoadData)
-{
-	if (IsValid(Road)) Road->SetMaterial(RoadData.Material);
-}
-
 void AArcWizPlayerController::InteriorLeftClickFunction()
 {
 	if (FVector StartLocation_, WorldDirection; DeprojectMousePositionToWorld(StartLocation_, WorldDirection))
@@ -1535,7 +1651,7 @@ void AArcWizPlayerController::InteriorLeftClickFunction()
 				}
 				break;
 				default:
-					if (IsValid(actor) && HitResult.GetComponent()->GetName() == "Floor") {
+					if (IsValid(actor) && (HitResult.GetComponent()->GetName() == "Roof" || HitResult.GetComponent()->GetName() == "Floor")) {
 						SpawnAndGenerate();
 					}
 				}
@@ -1622,50 +1738,33 @@ void AArcWizPlayerController::MaterialSelection()
 	}
 }
 
-void AArcWizPlayerController::OnConstructionModeClicked()
+void AArcWizPlayerController::HandleWallMaterialSelect(const FWallMaterial& WallData)
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "1");
-	bEditMode = false;
-	RoadWidget->OnConstructionModeClicked();
-}
+	if (IsValid(Wall))
+	{
+		Wall->SetMaterial(WallData.Material);
+		Wall->DeHighlightWalls();
+		Wall = nullptr;
+	}
 
-void AArcWizPlayerController::OnEditorModeClicked()
-{
-	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "1");
-	bEditMode = true;
-	RoadWidget->OnEditorModeClicked();
-}
+	if (IsValid(Floor))
+	{
+		Floor->SetMaterial(WallData.Material);
+		Floor->DeHighlightRoof();
+		Floor = nullptr;
+	}
 
-void AArcWizPlayerController::OnWidthChanged(float width)
-{
-
-	if (width > 700) width = 700;
-	if (IsValid(Road))
-		Road->SetActorScale3D(FVector(1, width / Dimension.Y, 1));
-}
-
-void AArcWizPlayerController::DeleteRoad()
-{
-	if (IsValid(Road))
-		Road->Destroy();
-}
-
-void AArcWizPlayerController::OnXChange(float value)
-{
-	FVector Location;
-	if (IsValid(Road) && bEditMode) {
-		//Location = Road->GetActorLocation();
-		RoadWidget->Location.X = value;
-		Road->SetActorLocation(RoadWidget->Location);
+	if (IsValid(Roof))
+	{
+		Roof->SetMaterial(WallData.Material);
+		Roof->DeHighlightRoof();
+		Roof = nullptr;
 	}
 }
 
-void AArcWizPlayerController::OnYChange(float value)
+void AArcWizPlayerController::HandleRoadMaterialSelect(const FRoadMaterial& RoadData)
 {
-	FVector Location;
-	if (IsValid(Road) && bEditMode) {
-		//Location = Road->GetActorLocation();
-		RoadWidget->Location.Y = value;
-		Road->SetActorLocation(RoadWidget->Location);
-	}
+	if (IsValid(Road)) Road->SetMaterial(RoadData.Material);
 }
+
+

@@ -22,6 +22,9 @@ void ARoofGenerator::GenerateRoof(FVector Dimensions, UMaterialInterface* Materi
 {
 	Roof->ClearAllMeshSections();
 	Floor->ClearAllMeshSections();
+
+	Dimention = Dimensions;
+	Actortype = "Roof";
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
 	TArray<FVector> Normals;
@@ -130,6 +133,11 @@ void ARoofGenerator::GenerateFloor(FVector Dimensions, UMaterialInterface* Mater
 {
 	Roof->ClearAllMeshSections();
 	Floor->ClearAllMeshSections();
+
+	Dimention = Dimensions;
+	Actortype = "Floor";
+
+
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
 	TArray<FVector> Normals;

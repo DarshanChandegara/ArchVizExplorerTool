@@ -14,6 +14,10 @@
 #include "InteriorGenerator.h"
 #include "InteriorWidget.h"
 #include "ArchVizSaveGame.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "HAL/FileManager.h"
+#include <Components/ScrollBox.h>
 #include "ArcWizPlayerController.generated.h"
 
 UENUM()
@@ -400,9 +404,20 @@ public:
 	void HandleModeChange(FString mode);
 
 	UFUNCTION(BlueprintCallable)
-	void SaveGame();
+	void SaveGame(FString Sloatname = "Default");
 
 	UFUNCTION(BlueprintCallable)
-	void LoadGame();
+	void LoadGame(FString Sloatname = "Default");
 
+	UFUNCTION(BlueprintCallable)
+	TArray<FString> FindFiles(FString Path , FString Extension);
+
+	UFUNCTION(BlueprintCallable)
+	void AddChilds(UScrollBox* ScrollBox, FString Text);
+
+	UFUNCTION()
+	void GetText();
+
+	UPROPERTY()
+	UScrollBox* Scroll;
 };
