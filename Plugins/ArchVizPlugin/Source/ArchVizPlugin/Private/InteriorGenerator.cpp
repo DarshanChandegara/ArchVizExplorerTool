@@ -40,3 +40,14 @@ void AInteriorGenerator::SetStaticMesh(UStaticMesh* SMesh)
 	}
 }
 
+void AInteriorGenerator::HighlightInterior()
+{
+	MeshComponent->SetRenderCustomDepth(true);
+	MeshComponent->CustomDepthStencilValue = 2.0;
+}
+
+void AInteriorGenerator::DeHighlightInterior()
+{
+	MeshComponent->SetRenderCustomDepth(false);
+}
+

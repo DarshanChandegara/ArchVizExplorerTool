@@ -30,6 +30,9 @@ public:
 	UButton* SaveButton;
 
 	UPROPERTY(meta = (BindWidget))
+	UButton* InstructionButton;
+
+	UPROPERTY(meta = (BindWidget))
 	USpinBox* Width;
 
 	UPROPERTY(meta = (BindWidget))

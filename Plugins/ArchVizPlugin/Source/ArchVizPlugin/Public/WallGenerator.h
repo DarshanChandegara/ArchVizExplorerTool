@@ -12,13 +12,9 @@ class ARCHVIZPLUGIN_API AWallGenerator : public AActor
 {
 	GENERATED_BODY()
 
-
-
 	UPROPERTY()
 	UStaticMeshComponent* WallSegment;
 
-	
-	
 public:	
 
 	UPROPERTY()

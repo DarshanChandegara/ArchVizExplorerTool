@@ -7,9 +7,6 @@
 #include "MyScrollBoxWidget.h"
 #include "MaterialWidget.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class ARCHVIZPLUGIN_API UMaterialWidget : public UUserWidget
 {
@@ -22,7 +19,4 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	UMyScrollBoxWidget* RoadMaterialScrollBox;
-
-	UPROPERTY(Transient ,meta = (BindWidgetAnim))
-	UWidgetAnimation* PopUp;
 };

@@ -12,12 +12,10 @@ class ARCHVIZPLUGIN_API ARoofGenerator : public AActor
 {
 	GENERATED_BODY()
 
-
 	UPROPERTY()
 	USceneComponent* Scene;
 	
 public:	
-
 
 	UPROPERTY()
 	UProceduralMeshComponent* Roof;

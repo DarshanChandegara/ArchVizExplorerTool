@@ -18,6 +18,8 @@
 #include "Misc/Paths.h"
 #include "HAL/FileManager.h"
 #include <Components/ScrollBox.h>
+#include "CustomButton.h"
+#include "MainWidget.h"
 #include "ArcWizPlayerController.generated.h"
 
 UENUM()
@@ -25,7 +27,8 @@ enum class EMode : int8 {
 	RoadMode ,
 	HouseMode ,
 	InteriorMode ,
-	MaterialMode
+	MaterialMode ,
+	View
 };
 
 UENUM()
@@ -124,6 +127,8 @@ private:
 
 	// Road UI
 
+	void BindRoadWidget();
+
 	UFUNCTION()
 	void OnConstructionModeClicked();
 
@@ -157,6 +162,8 @@ private:
 	void DeSelectFunction();
 
 	// House UI
+
+	void BindHouseWidget();
 
 	UFUNCTION()
 	void WallMode();
@@ -221,6 +228,8 @@ private:
 
 	// Interior UI
 
+	void BindInteriorWidget();
+
 	UFUNCTION()
 	void ChairButtonClick();
 
@@ -235,8 +244,9 @@ private:
 
 	UFUNCTION()
 	void CeilInteriorButtonClick();
-	//UFUNCTION()
-	//void HandleChairSelect(const FChairType& ChairData);
+
+	UFUNCTION()
+	void DeleteInterior();
 
 	UFUNCTION()
 	void HandleStaticMeshSelect(const FStaticMeshtype& MeshData);
@@ -244,6 +254,8 @@ private:
 	// Material
 
 	void MaterialSelection();
+
+	void BindMaterialWidget();
 
 
 public:
@@ -313,6 +325,9 @@ public:
 	UInputAction* RotateActionR;
 
 	UPROPERTY()
+	UInputAction* DeleteAction;
+
+	UPROPERTY()
 	UInputMappingContext* DoorMapping;
 
 	UPROPERTY()
@@ -350,6 +365,8 @@ public:
 
 	UPROPERTY()
 	UInteriorWidget* InteriorWidget;
+
+
 
 	// Materials 
 
@@ -400,8 +417,11 @@ public:
 	UPROPERTY()
 	TEnumAsByte<EInteriorType> InteriorType;
 
+	UFUNCTION()
+	void HandleSaveButtonclick();
+
 	UFUNCTION(BlueprintCallable)
-	void HandleModeChange(FString mode);
+	void HandleModeChange(FString mode, ESelectInfo::Type Type);
 
 	UFUNCTION(BlueprintCallable)
 	void SaveGame(FString Sloatname = "Default");
@@ -412,12 +432,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TArray<FString> FindFiles(FString Path , FString Extension);
 
-	UFUNCTION(BlueprintCallable)
-	void AddChilds(UScrollBox* ScrollBox, FString Text);
-
 	UFUNCTION()
-	void GetText();
+	void GetText(int32 Id);
+
+	UPROPERTY(EditAnywhere , BlueprintReadWrite)
+	TSubclassOf<UMainWidget> MainWidegtclass;
+
+	UPROPERTY(BlueprintReadWrite)
+	UMainWidget* MainWidget;
 
 	UPROPERTY()
-	UScrollBox* Scroll;
+	TMap<int32, FString> SavedGameMapping;
 };

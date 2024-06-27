@@ -45,7 +45,6 @@ void UMyScrollBoxWidget::HandleOnRoadSelected(const FRoadMaterial& RoadData)
 	OnRoadSelectedEvent.ExecuteIfBound(RoadData);
 }
 
-
 void UMyScrollBoxWidget::HandleOnStaticMeshSelected(const FStaticMeshtype& MeshData)
 {
 	OnStaticMeshSelectEvent.ExecuteIfBound(MeshData);

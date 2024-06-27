@@ -11,8 +11,6 @@ class ARCHVIZPLUGIN_API AInteriorGenerator : public AActor
 {
 	GENERATED_BODY()
 
-
-	
 public:	
 	AInteriorGenerator();
 
@@ -21,7 +19,6 @@ public:
 
 	UPROPERTY()
 	UStaticMeshComponent* MeshComponent;
-
 
 protected:
 	virtual void BeginPlay() override;
@@ -33,4 +30,7 @@ public:
 
 	void SetStaticMesh(UStaticMesh* SMesh);
 
+	void HighlightInterior();
+
+	void DeHighlightInterior();
 };

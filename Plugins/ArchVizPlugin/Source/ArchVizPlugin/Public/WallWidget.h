@@ -40,9 +40,6 @@ public:
 	UButton* AdjustButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* DeleteButton;
-
-	UPROPERTY(meta = (BindWidget))
 	UButton* MoveButton;
 
 	UPROPERTY(meta = (BindWidget))
@@ -89,9 +86,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,meta = (BindWidget))
 	UMyScrollBoxWidget* DoorScrollBox;
-
-	UPROPERTY(Transient, meta = (BindWidgetAnim))
-	UWidgetAnimation* PopUp;
 
 	virtual void NativeConstruct() override;
 

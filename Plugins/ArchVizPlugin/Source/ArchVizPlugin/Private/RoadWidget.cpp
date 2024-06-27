@@ -13,6 +13,7 @@ void URoadWidget::OnConstructionModeClicked()
 	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "2");
 
 	ConstructionMode->SetVisibility(ESlateVisibility::Collapsed);
+	InstructionButton->SetVisibility(ESlateVisibility::Collapsed);
 	EditorMode->SetVisibility(ESlateVisibility::Visible);
 	HorizontalBox->SetVisibility(ESlateVisibility::Collapsed);
 	DeleteButton->SetVisibility(ESlateVisibility::Collapsed);
@@ -26,6 +27,7 @@ void URoadWidget::OnEditorModeClicked()
 	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, "2");
 
 	ConstructionMode->SetVisibility(ESlateVisibility::Visible);
+	InstructionButton->SetVisibility(ESlateVisibility::Visible);
 	EditorMode->SetVisibility(ESlateVisibility::Collapsed);
 	HorizontalBox->SetVisibility(ESlateVisibility::Visible);
 	DeleteButton->SetVisibility(ESlateVisibility::Visible);
