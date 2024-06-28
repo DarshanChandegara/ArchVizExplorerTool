@@ -147,6 +147,16 @@ void ARoadGenerator::DeHighlightRoad()
 
 void ARoadGenerator::SetMaterial(UMaterialInterface* Material)
 {
-	if (Road) Road->SetMaterial(0, Material);
+	if (Road) {
+		//UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(Material, this);
+
+		//float TileX = Size.X/ 300.f;
+		//float TileY = 1;
+
+		//MaterialInstance->SetScalarParameterValue(TEXT("TileX"), TileX);
+		//MaterialInstance->SetScalarParameterValue(TEXT("TileY"), TileY);
+		//Road->SetMaterial(0, MaterialInstance);
+		Road->SetMaterial(0, Material);
+	}
 }
 

@@ -151,8 +151,6 @@ private:
 	void NewRoadGenerateFucntion();
 
 	// House
-	void SnapActor(AActor* actor , float SnapValue);
-
 	void SpawnAndGenerate();
 
 	void DoorGenerationFunction();
@@ -246,9 +244,6 @@ private:
 	void CeilInteriorButtonClick();
 
 	UFUNCTION()
-	void DeleteInterior();
-
-	UFUNCTION()
 	void HandleStaticMeshSelect(const FStaticMeshtype& MeshData);
 
 	// Material
@@ -319,7 +314,7 @@ public:
 	UInputAction* WallGenerateAction;
 
 	UPROPERTY()
-	UInputAction* RotateActionE;
+	UInputAction* RotateActionT;
 
 	UPROPERTY()
 	UInputAction* RotateActionR;
@@ -404,7 +399,7 @@ public:
 	// Wall
 
 	void RotateFunctionR();
-	void RotateFunctionE();
+	void RotateFunctionT();
 
 	// Mode Change
 
@@ -433,6 +428,9 @@ public:
 	TArray<FString> FindFiles(FString Path , FString Extension);
 
 	UFUNCTION()
+	void AddDataToLoadMap(int32 Index , FString Name);
+
+	UFUNCTION()
 	void GetText(int32 Id);
 
 	UPROPERTY(EditAnywhere , BlueprintReadWrite)
@@ -443,4 +441,7 @@ public:
 
 	UPROPERTY()
 	TMap<int32, FString> SavedGameMapping;
+
+	UFUNCTION()
+	void DeleteLoadGame(int32 data);
 };

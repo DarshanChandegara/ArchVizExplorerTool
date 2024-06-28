@@ -40,7 +40,7 @@ void SSScrollBoxWidget::Construct(const FArguments& InArgs)
 		];
 
 	HeadText = SNew(STextBlock).Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Regular.ttf"), HeadTextSize))
-		.ColorAndOpacity(FColor::FromHex("#0d4cbfFF"));
+		.ColorAndOpacity(FColor::FromHex("#ffffff"));
 	HeadText->SetText(FText::FromString(HeadString));
 
 	ScrollBox = SNew(SScrollBox);
@@ -136,7 +136,7 @@ void SSScrollBoxWidget::CreateDoorScrollBox()
 
 
 				TSharedPtr<STextBlock> TextBlock = SNew(STextBlock).Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Regular.ttf"), ThumbnailTextSize))
-					.ColorAndOpacity(FSlateColor(FColor::FromHex("#05631eFF")));;
+					.ColorAndOpacity(FSlateColor(FColor::FromHex("#ffffff")));;
 				TextBlock->SetText(FText::FromString(DoorData.Name));
 				VerticalBox->AddSlot().HAlign(EHorizontalAlignment::HAlign_Center).AutoHeight()
 					[

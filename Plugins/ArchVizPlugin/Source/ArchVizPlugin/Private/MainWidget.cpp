@@ -22,7 +22,8 @@ void UMainWidget::AddChilds(FString Text, int32 Id)
 					}
 				}
 				ScrollBox->AddChild(Button);
-				Button->OnButtonClick.BindUObject(this, &UMainWidget::BindFunction);
+				Button->OnButtonClick.BindUObject(this, &UMainWidget::BindLoadFunction);
+				Button->OnDeleteButtonClick.BindUObject(this, &UMainWidget::BindDeleteFunction);
 			}
 		}
 	}
@@ -44,9 +45,14 @@ void UMainWidget::NativeConstruct()
 
 }
 
-void UMainWidget::BindFunction(int32 data)
+void UMainWidget::BindLoadFunction(int32 data)
 {
 	ButtonClick.ExecuteIfBound(data);
+}
+
+void UMainWidget::BindDeleteFunction(int32 data)
+{
+	DeleteButtonClick.ExecuteIfBound(data);
 }
 
 void UMainWidget::HandleSaveButtonClick()
@@ -73,8 +79,23 @@ void UMainWidget::HandleLoadButtonClick()
 		SavedDir.Append("/SaveGames");
 		auto array = PC->FindFiles(SavedDir, ".sav");
 
-		for (int i = 0; i < array.Num(); i++) {
-			AddChilds(array[i].LeftChop(4) , i);
+		if (array.Num() == 0) {
+			UButton* button = NewObject<UButton>(ScrollBox);
+			if (button) {
+				UTextBlock* Buttontext = NewObject<UTextBlock>(ScrollBox);
+				if (Buttontext) {
+					Buttontext->SetText(FText::FromString("No Projects To Load"));
+					button->AddChild(Buttontext);
+				}
+				button->SetBackgroundColor(FColor::FromHex("#02BFFFFF"));
+				ScrollBox->AddChild(button);
+			}
+		}
+		else {
+			for (int i = 0; i < array.Num(); i++) {
+				PC->AddDataToLoadMap(i, array[i]);
+				AddChilds(array[i].LeftChop(4), i);
+			}
 		}
 	}
 }

@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
+#include "ArchWizActor.h"
 #include "RoofGenerator.generated.h"
 
 UCLASS()
-class ARCHVIZPLUGIN_API ARoofGenerator : public AActor
+class ARCHVIZPLUGIN_API ARoofGenerator : public AArchWizActor
 {
 	GENERATED_BODY()
 
@@ -16,6 +17,9 @@ class ARCHVIZPLUGIN_API ARoofGenerator : public AActor
 	USceneComponent* Scene;
 	
 public:	
+
+	UPROPERTY()
+	UMaterialInterface* DefaultMaterial;
 
 	UPROPERTY()
 	UProceduralMeshComponent* Roof;
@@ -48,5 +52,7 @@ public:
 	void DeHighlightRoof();
 
 	void SetMaterial(UMaterialInterface* Material);
+
+	void UpdateLocation();
 
 };

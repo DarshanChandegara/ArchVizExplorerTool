@@ -51,3 +51,22 @@ void AInteriorGenerator::DeHighlightInterior()
 	MeshComponent->SetRenderCustomDepth(false);
 }
 
+void AInteriorGenerator::UpdateLocation()
+{
+	if (FVector StartLocation_, WorldDirection; Controller-> DeprojectMousePositionToWorld(StartLocation_, WorldDirection))
+	{
+		FVector EndLocation_ = StartLocation_ + WorldDirection * 100000;
+
+		FCollisionQueryParams Params;
+		Params.bTraceComplex = true;
+		Params.AddIgnoredActor(this);
+
+		if (FHitResult HitResult; GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation_, EndLocation_,
+			ECC_Visibility, Params))
+		{
+			FVector Location = HitResult.Location;
+			SetActorLocation(Location);
+		}
+	}
+}
+

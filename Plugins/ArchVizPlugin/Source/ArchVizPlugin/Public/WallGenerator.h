@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include <ProceduralMeshComponent.h>
+#include "ArchWizActor.h"
 #include "WallGenerator.generated.h"
 
 UCLASS()
-class ARCHVIZPLUGIN_API AWallGenerator : public AActor
+class ARCHVIZPLUGIN_API AWallGenerator : public AArchWizActor
 {
 	GENERATED_BODY()
 
@@ -44,12 +45,18 @@ public:
 	void HighlightWall();
 	void DeHighlightWall();
 	void SetMaterial(UMaterialInterface* Material);
+	UMaterialInterface* GetMaterial(UStaticMeshComponent* MeshComponent);
 
 	void SetWallSegment(UStaticMeshComponent* Segment);
+
 	UStaticMeshComponent* GetWallSegment();
 
 	void UpdateWallSegment(FVector Location, UStaticMesh* Mesh);
 
 	void EndPlay(EEndPlayReason::Type Reason) override;
+
+	void GenerateDoor(UStaticMesh* DoorMesh);
+
+	void UpdateLocation();
 
 };

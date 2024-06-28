@@ -9,6 +9,7 @@
 #include "CustomButton.generated.h"
 
 DECLARE_DELEGATE_OneParam(FOnButtonClick , int32)
+DECLARE_DELEGATE_OneParam(FOnDeleteButtonClick , int32)
 
 UCLASS()
 class ARCHVIZPLUGIN_API UCustomButton : public UUserWidget
@@ -18,11 +19,15 @@ class ARCHVIZPLUGIN_API UCustomButton : public UUserWidget
 public:
 
 	FOnButtonClick OnButtonClick;
+	FOnDeleteButtonClick OnDeleteButtonClick;
 
 	UCustomButton(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* MyButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* DeleteSlotButton;
 
 	UPROPERTY()
 	int32 Index;
@@ -33,4 +38,7 @@ public:
 
 	UFUNCTION()
 	void ClickButtonHandle();	
+
+	UFUNCTION()
+	void DeleteButtonHandle();	
 };

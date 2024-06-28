@@ -9,7 +9,6 @@ AWallGenerator::AWallGenerator()
 
 	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	RootComponent = Scene;
-
 }
 
 void AWallGenerator::BeginPlay()
@@ -90,7 +89,7 @@ void AWallGenerator::SetMaterial(UMaterialInterface* Material)
 {
 	for (auto it : WallArray) {
 		if (it) {
-			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, FString::FromInt(it->GetMaterials().Num()));
+			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, FString::FromInt(it->GetMaterials().Num()));
 
 			if (it->GetMaterials().Num() == 1) {
 				it->SetMaterial(0 , Material);
@@ -107,6 +106,30 @@ void AWallGenerator::SetMaterial(UMaterialInterface* Material)
 			}
 		}
 	}
+}
+
+UMaterialInterface* AWallGenerator::GetMaterial(UStaticMeshComponent* MeshComponent)
+{
+	auto index = MeshComponent->GetMaterials().Num();
+	switch (index) {
+	case 1:
+		return MeshComponent->GetMaterial(0);
+		break;
+
+	case 2:
+		return MeshComponent->GetMaterial(1);
+		break;
+
+	case 3:
+		return MeshComponent->GetMaterial(1);
+		break;
+
+	case 4:
+		return MeshComponent->GetMaterial(3);
+		break;
+	}
+
+	return nullptr;
 }
 
 void AWallGenerator::SetWallSegment(UStaticMeshComponent* Segment)
@@ -139,4 +162,53 @@ void AWallGenerator::EndPlay(EEndPlayReason::Type Reason)
 {
 	ClearWalls();
 	Super::EndPlay(Reason);
+}
+
+void AWallGenerator::GenerateDoor(UStaticMesh* DoorMesh)
+{
+	if (WallSegment) {
+		auto location = WallSegment->GetRelativeLocation();
+
+		UMaterialInterface* DefaultMaterial = GetMaterial(WallSegment);
+
+		int32 ArrayIndex = WallArray.Find(WallSegment);
+
+		WallSegment->DestroyComponent();
+		WallSegment = nullptr;
+
+		UStaticMeshComponent* MeshComponent = NewObject<UStaticMeshComponent>(this);
+		MeshComponent->SetStaticMesh(DoorMesh);
+		MeshComponent->AttachToComponent(Scene, FAttachmentTransformRules::KeepRelativeTransform);
+		MeshComponent->RegisterComponent();
+		MeshComponent->SetRelativeLocation(location + FVector(-1, 0, 0));
+		MeshComponent->SetRelativeRotation(FRotator(0, 90, 0));
+		MeshComponent->SetWorldScale3D(FVector(0.2, 1.005, 1));
+
+		WallArray[ArrayIndex] = MeshComponent;
+
+		SetMaterial(DefaultMaterial);
+	}
+}
+
+void AWallGenerator::UpdateLocation()
+{
+		if (FVector StartLocation_, WorldDirection; Controller-> DeprojectMousePositionToWorld(StartLocation_, WorldDirection))
+		{
+			FVector EndLocation_ = StartLocation_ + WorldDirection * 100000;
+
+			FCollisionQueryParams Params;
+			Params.bTraceComplex = true;
+			Params.AddIgnoredActor(this);
+
+			if (FHitResult HitResult; GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation_, EndLocation_,
+				ECC_Visibility, Params))
+			{
+				FVector Location = HitResult.Location;
+
+				//FVector PrevLocation = FVector(0, 0, AreaActor->GetActorLocation().Z);
+				SetActorLocation(Location);
+
+				SnapActor(this, 20);
+			}
+		}
 }

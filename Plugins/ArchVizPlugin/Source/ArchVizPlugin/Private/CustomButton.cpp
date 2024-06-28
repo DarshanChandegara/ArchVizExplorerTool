@@ -14,6 +14,10 @@ void UCustomButton::NativeConstruct()
 	if (MyButton) {
 		MyButton->OnClicked.AddDynamic(this , &UCustomButton::ClickButtonHandle);
 	}
+
+	if (DeleteSlotButton) {
+		DeleteSlotButton->OnClicked.AddDynamic(this, &UCustomButton::DeleteButtonHandle);
+	}
 }
 
 void UCustomButton::InitializeWidget(int32 CustomInt)
@@ -24,5 +28,10 @@ void UCustomButton::InitializeWidget(int32 CustomInt)
 void UCustomButton::ClickButtonHandle()
 {
 	OnButtonClick.ExecuteIfBound(Index);
+}
+
+void UCustomButton::DeleteButtonHandle()
+{
+	OnDeleteButtonClick.ExecuteIfBound(Index);
 }
 

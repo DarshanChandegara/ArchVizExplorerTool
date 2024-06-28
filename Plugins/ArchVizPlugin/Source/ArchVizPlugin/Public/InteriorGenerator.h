@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ArchWizActor.h"
 #include "InteriorGenerator.generated.h"
 
 UCLASS()
-class ARCHVIZPLUGIN_API AInteriorGenerator : public AActor
+class ARCHVIZPLUGIN_API AInteriorGenerator : public AArchWizActor
 {
 	GENERATED_BODY()
 
@@ -33,4 +34,7 @@ public:
 	void HighlightInterior();
 
 	void DeHighlightInterior();
+
+	void UpdateLocation();
+
 };

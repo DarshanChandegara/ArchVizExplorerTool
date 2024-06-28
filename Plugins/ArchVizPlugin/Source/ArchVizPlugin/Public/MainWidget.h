@@ -12,6 +12,7 @@
 #include "MainWidget.generated.h"
 
 DECLARE_DELEGATE_OneParam(FOnButtonClick , int32)
+DECLARE_DELEGATE_OneParam(FOnDeleteButtonClick , int32)
 
 UCLASS()
 class ARCHVIZPLUGIN_API UMainWidget : public UUserWidget
@@ -54,11 +55,15 @@ public:
 	void AddChilds(FString Text, int32 Id);
 
 	FOnButtonClick ButtonClick;
+	FOnDeleteButtonClick DeleteButtonClick;
 
 	virtual void NativeConstruct() override;
 	
 	UFUNCTION()
-	void BindFunction(int32 data);
+	void BindLoadFunction(int32 data);
+
+	UFUNCTION()
+	void BindDeleteFunction(int32 data);
 
 	UFUNCTION()
 	void HandleSaveButtonClick();

@@ -126,6 +126,7 @@ void ARoofGenerator::GenerateRoof(FVector Dimensions, UMaterialInterface* Materi
 
 
 	Roof->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
+
 	Roof->SetMaterial(0, Material);
 }
 
@@ -273,7 +274,37 @@ void ARoofGenerator::DeHighlightRoof()
 
 void ARoofGenerator::SetMaterial(UMaterialInterface* Material)
 {
-	Roof->SetMaterial(0, Material);
-	Floor->SetMaterial(0, Material);
+	DefaultMaterial = Material;
+	UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(Material, this);
+
+	float TileX = Dimention.X / 150.f;
+	float TileY = Dimention.Y / 150.f;
+
+	MaterialInstance->SetScalarParameterValue(TEXT("TileX"), TileX);
+	MaterialInstance->SetScalarParameterValue(TEXT("TileY"), TileY);
+	Roof->SetMaterial(0, MaterialInstance);
+	Floor->SetMaterial(0, MaterialInstance);
+}
+
+void ARoofGenerator::UpdateLocation()
+{
+	if (FVector StartLocation_, WorldDirection;Controller-> DeprojectMousePositionToWorld(StartLocation_, WorldDirection))
+	{
+		FVector EndLocation_ = StartLocation_ + WorldDirection * 100000;
+
+		FCollisionQueryParams Params;
+		Params.bTraceComplex = true;
+		Params.AddIgnoredActor(this);
+
+		if (FHitResult HitResult; GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation_, EndLocation_,
+			ECC_Visibility, Params))
+		{
+			FVector Location = HitResult.Location;
+			//Location.Z += WallWidget->ZOffset->GetValue();
+			SetActorLocation(Location);
+
+			SnapActor(this, 20);
+		}
+	}
 }
 
