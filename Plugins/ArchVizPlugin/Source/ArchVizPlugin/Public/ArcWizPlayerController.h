@@ -415,6 +415,9 @@ public:
 	UFUNCTION()
 	void HandleSaveButtonclick();
 
+	UFUNCTION()
+	void HandleRenameButtonclick();
+
 	UFUNCTION(BlueprintCallable)
 	void HandleModeChange(FString mode, ESelectInfo::Type Type);
 
@@ -433,6 +436,9 @@ public:
 	UFUNCTION()
 	void GetText(int32 Id);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void NotifyUser(const FString& Text);
+
 	UPROPERTY(EditAnywhere , BlueprintReadWrite)
 	TSubclassOf<UMainWidget> MainWidegtclass;
 
@@ -444,4 +450,7 @@ public:
 
 	UFUNCTION()
 	void DeleteLoadGame(int32 data);
+
+	UPROPERTY()
+	FString ProjectName;
 };

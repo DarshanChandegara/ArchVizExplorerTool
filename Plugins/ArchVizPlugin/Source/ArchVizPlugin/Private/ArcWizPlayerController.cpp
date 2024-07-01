@@ -105,6 +105,8 @@ void AArcWizPlayerController::BeginPlay()
 		MainWidget->Save->OnClicked.AddDynamic(this, &AArcWizPlayerController::HandleSaveButtonclick);
 		MainWidget->ButtonClick.BindUObject(this, &AArcWizPlayerController::GetText);
 		MainWidget->DeleteButtonClick.BindUObject(this, &AArcWizPlayerController::DeleteLoadGame);
+		MainWidget->Rename->OnClicked.AddDynamic(this, &AArcWizPlayerController::HandleRenameButtonclick);
+		MainWidget->PlayAnimation(MainWidget->PopUp);
 	}
 
 	if (RoadWidgetClass) {
@@ -149,13 +151,41 @@ void AArcWizPlayerController::Tick(float DeltaTime)
 
 void AArcWizPlayerController::HandleSaveButtonclick()
 {
+
 	FString Name = MainWidget->SaveSlotName->GetText().ToString();
-	if(Name == "")
+	if (Name == "")
 		SaveGame();
 	else
 		SaveGame(Name);
+
+	if (Name == "") ProjectName = "Default";
+	else ProjectName = Name;
+
 	MainWidget->SaveSlotName->SetText(FText::FromString(""));
 	MainWidget->SaveBorder->SetVisibility(ESlateVisibility::Collapsed);
+	MainWidget->RenameButton->SetVisibility(ESlateVisibility::Visible);
+
+	NotifyUser(ProjectName + " Saved Successfully");
+}
+
+void AArcWizPlayerController::HandleRenameButtonclick()
+{
+	FString Name = MainWidget->SaveSlotName_->GetText().ToString();
+	//GEngine->AddOnScreenDebugMessage(-1,5,FColor::Red , ProjectName);
+	//GEngine->AddOnScreenDebugMessage(-1,5,FColor::Red , Name);
+
+	UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::CreateSaveGameObject(UArchVizSaveGame::StaticClass()));
+
+	if (SavedGameInstance) {
+
+		SaveGame(Name);
+		UGameplayStatics::DeleteGameInSlot(ProjectName ,0 );
+		ProjectName = Name;
+		GEngine->AddOnScreenDebugMessage(-1,5,FColor::Red , "Rename");
+		
+	}
+
+	MainWidget->RenameBorder->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void AArcWizPlayerController::HandleModeChange(FString mode, ESelectInfo::Type Type)
@@ -321,7 +351,7 @@ void AArcWizPlayerController::SaveGame(FString Slotname)
 
 				RoadData.RoadTransform = RoadActor->GetTransform();
 				RoadData.Dimenstion = RoadActor->Size;
-				RoadData.Material = RoadActor->Road->GetMaterial(0);
+				RoadData.Material = RoadActor->DefaultMaterial;
 				SavedGameInstance->RoadActorArray.Add(RoadData);
 				//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Saved Road");
 			}
@@ -440,6 +470,7 @@ void AArcWizPlayerController::LoadGame(FString Slotname)
 
 			SpawnActor->GenerateRoad(it.Dimenstion, { 0,0,0 }, it.Material);
 			SpawnActor->SetActorTransform(it.RoadTransform);
+			SpawnActor->SetMaterial(it.Material);
 
 		}
 
@@ -541,6 +572,9 @@ void AArcWizPlayerController::GetText(int32 Id)
 	LoadGame(string);
 
 	MainWidget->ScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+	MainWidget->MainCanvas->SetVisibility(ESlateVisibility::Collapsed);
+	ProjectName = string;
+	NotifyUser(string + " Loaded Successfully");
 }
 
 void AArcWizPlayerController::DeleteLoadGame(int32 Id)
@@ -551,8 +585,9 @@ void AArcWizPlayerController::DeleteLoadGame(int32 Id)
 	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Black, string);
 	string = string.LeftChop(4);
 
-	UGameplayStatics::DeleteGameInSlot(string,0);
+	UGameplayStatics::DeleteGameInSlot(string, 0);
 	MainWidget->HandleLoadButtonClick();
+	NotifyUser(string + " Project Deleted Successfully");
 }
 
 void AArcWizPlayerController::CleanUp()
@@ -632,11 +667,11 @@ void AArcWizPlayerController::RotateFunctionR()
 	}
 
 	if (IsValid(Floor)) {
-		Floor->SetActorRelativeRotation(Floor->GetActorRotation() + FRotator(0, -90, 0));
+		Floor->SetActorRelativeRotation(Floor->GetActorRotation() + FRotator(0, 90, 0));
 	}
 
 	if (IsValid(Interior)) {
-		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, -90, 0));
+		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, 30, 0));
 	}
 }
 
@@ -737,6 +772,7 @@ void AArcWizPlayerController::RoadGenerateFucntion()
 void AArcWizPlayerController::NewRoadGenerateFucntion()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, "Bind");
+	NotifyUser("New Road Generated");
 	if (IsValid(Road))
 		Road->DeHighlightRoad();
 
@@ -1178,12 +1214,26 @@ void AArcWizPlayerController::AdjustMode()
 
 void AArcWizPlayerController::DeleteObject()
 {
-	if (IsValid(Wall)) Wall->Destroy();
-	if (IsValid(Roof)) Roof->Destroy();
-	if (IsValid(Floor)) Floor->Destroy();
+	if (IsValid(Wall)){
+		Wall->Destroy();
+		NotifyUser("Wall Deleted");
+	}
+
+	if (IsValid(Roof)){
+		Roof->Destroy();
+		NotifyUser("Roof Deleted");
+	}
+
+	if (IsValid(Floor)) {
+		Floor->Destroy();
+		NotifyUser("Floor Deleted");
+	}
+
 	if (IsValid(Interior)) {
 		Interior->Destroy();
 		SpawnAndGenerate();
+		NotifyUser("Interior Deleted");
+
 	}
 }
 
@@ -1211,6 +1261,8 @@ void AArcWizPlayerController::DeleteDoor()
 		}
 		Wall->DeHighlightWall();
 		Wall = nullptr;
+		NotifyUser("Door Deleted");
+
 	}
 }
 
@@ -1231,6 +1283,7 @@ void AArcWizPlayerController::SpawnAndGenerate()
 				Wall->GenerateWall(StaticCast<int32>(WallWidget->SegmentNumber->GetValue()));
 				Wall->HighlightWalls();
 			}
+			NotifyUser("New Wall Generated");
 		}
 		else if (HouseConstructionMode == EHouseConstructionMode::Roof) {
 			auto SpawnActor = GetWorld()->SpawnActor<ARoofGenerator>(ARoofGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
@@ -1238,6 +1291,7 @@ void AArcWizPlayerController::SpawnAndGenerate()
 			float x = WallWidget->Length->GetValue();;
 			float y = WallWidget->Width->GetValue();
 			float z = WallWidget->Height->GetValue();
+			NotifyUser("New Roof Generated");
 
 			if (Roof = Cast<ARoofGenerator>(SpawnActor); IsValid(Roof)) {
 				Roof->GenerateRoof(FVector(x, y, z), Material, FVector(0, 0, 300));
@@ -1246,6 +1300,7 @@ void AArcWizPlayerController::SpawnAndGenerate()
 		}
 		else if (HouseConstructionMode == EHouseConstructionMode::Floor) {
 			auto SpawnActor = GetWorld()->SpawnActor<ARoofGenerator>(ARoofGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+			NotifyUser("New Floor Generated");
 
 			float x = WallWidget->Length->GetValue();;
 			float y = WallWidget->Width->GetValue();
@@ -1318,7 +1373,7 @@ void AArcWizPlayerController::AdjustmentFunction()
 			//WallWidget->HorizontalBox->SetVisibility(ESlateVisibility::Collapsed);
 			WallWidget->RoofLengthBox->SetVisibility(ESlateVisibility::Visible);
 			WallWidget->RoofWidthBox->SetVisibility(ESlateVisibility::Visible);
-			WallWidget->RoofHeightBox->SetVisibility(ESlateVisibility::Visible);
+			//WallWidget->RoofHeightBox->SetVisibility(ESlateVisibility::Visible);
 			WallWidget->MoveButton->SetVisibility(ESlateVisibility::Visible);
 
 		}
@@ -1329,7 +1384,7 @@ void AArcWizPlayerController::AdjustmentFunction()
 			CurrentLocation = Wall->GetActorLocation();
 			WallWidget->RoofLengthBox->SetVisibility(ESlateVisibility::Collapsed);
 			WallWidget->RoofWidthBox->SetVisibility(ESlateVisibility::Collapsed);
-			WallWidget->RoofHeightBox->SetVisibility(ESlateVisibility::Collapsed);
+			//WallWidget->RoofHeightBox->SetVisibility(ESlateVisibility::Collapsed);
 			//WallWidget->HorizontalBox->SetVisibility(ESlateVisibility::Visible);
 			WallWidget->MoveButton->SetVisibility(ESlateVisibility::Visible);
 
@@ -1539,6 +1594,7 @@ void AArcWizPlayerController::HandleDoorSelect(const FDoorType& DoorData)
 	}
 	WallWidget->DoorScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 	WallWidget->DeleteDoorButton->SetVisibility(ESlateVisibility::Visible);
+	NotifyUser("Door Placed");
 
 }
 
@@ -1569,7 +1625,11 @@ void AArcWizPlayerController::InteriorLeftClickFunction()
 				{
 					if (Cast<AWallGenerator>(actor)) {
 						if (IsValid(Interior)) Interior->DeHighlightInterior();
+						NotifyUser("Interior Placed");
 						SpawnAndGenerate();
+					}
+					else {
+						NotifyUser("Object Can Be  Place Only On Wall");
 					}
 				}
 				break;
@@ -1580,7 +1640,14 @@ void AArcWizPlayerController::InteriorLeftClickFunction()
 						if (HitResult.ImpactNormal.Z < 0) {
 							if (IsValid(Interior)) Interior->DeHighlightInterior();
 							SpawnAndGenerate();
+							NotifyUser("Interior Placed");
 						}
+						else {
+							NotifyUser("Can't Place The Object On This Side");
+						}
+					}
+					else {
+						NotifyUser("Object Can Be  Place Only On Roof");
 					}
 				}
 				break;
@@ -1589,7 +1656,14 @@ void AArcWizPlayerController::InteriorLeftClickFunction()
 						if (HitResult.ImpactNormal.Z > 0) {
 							if (IsValid(Interior)) Interior->DeHighlightInterior();
 							SpawnAndGenerate();
+							NotifyUser("Interior Placed");
 						}
+						else {
+							NotifyUser("Can't Place The Object On This Side");
+						}
+					}
+					else {
+						NotifyUser("Object Can Be Placed Only On Floor Or Roof");
 					}
 				}
 			}

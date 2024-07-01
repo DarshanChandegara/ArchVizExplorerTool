@@ -3,7 +3,6 @@
 
 #include "RoadGenerator.h"
 
-// Sets default values
 ARoadGenerator::ARoadGenerator()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -13,14 +12,12 @@ ARoadGenerator::ARoadGenerator()
 	Road->SetupAttachment(GetRootComponent());
 }
 
-// Called when the game starts or when spawned
 void ARoadGenerator::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-// Called every frame
 void ARoadGenerator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -130,6 +127,7 @@ void ARoadGenerator::GenerateRoad(FVector Dimensions, FVector Offset, UMaterialI
 
 
 	Road->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
+	DefaultMaterial = Material;
 	Road->SetMaterial(0, Material);
 }
 
@@ -148,15 +146,16 @@ void ARoadGenerator::DeHighlightRoad()
 void ARoadGenerator::SetMaterial(UMaterialInterface* Material)
 {
 	if (Road) {
-		//UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(Material, this);
+		DefaultMaterial = Material;
 
-		//float TileX = Size.X/ 300.f;
-		//float TileY = 1;
+		UMaterialInstanceDynamic* MaterialInstance = UMaterialInstanceDynamic::Create(Material, this);
 
-		//MaterialInstance->SetScalarParameterValue(TEXT("TileX"), TileX);
-		//MaterialInstance->SetScalarParameterValue(TEXT("TileY"), TileY);
-		//Road->SetMaterial(0, MaterialInstance);
-		Road->SetMaterial(0, Material);
+		float TileX = Size.X/ 300.f;
+		float TileY = 1;
+
+		MaterialInstance->SetScalarParameterValue(TEXT("TileX"), TileX);
+		MaterialInstance->SetScalarParameterValue(TEXT("TileY"), TileY);
+		Road->SetMaterial(0, MaterialInstance);
 	}
 }
 

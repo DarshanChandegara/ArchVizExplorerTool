@@ -23,6 +23,8 @@ void ARoofGenerator::GenerateRoof(FVector Dimensions, UMaterialInterface* Materi
 	Roof->ClearAllMeshSections();
 	Floor->ClearAllMeshSections();
 
+	DefaultMaterial = Material;
+
 	Dimention = Dimensions;
 	Actortype = "Roof";
 	TArray<FVector> Vertices;
@@ -138,6 +140,7 @@ void ARoofGenerator::GenerateFloor(FVector Dimensions, UMaterialInterface* Mater
 	Dimention = Dimensions;
 	Actortype = "Floor";
 
+	DefaultMaterial = Material;
 
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
@@ -282,8 +285,12 @@ void ARoofGenerator::SetMaterial(UMaterialInterface* Material)
 
 	MaterialInstance->SetScalarParameterValue(TEXT("TileX"), TileX);
 	MaterialInstance->SetScalarParameterValue(TEXT("TileY"), TileY);
-	Roof->SetMaterial(0, MaterialInstance);
-	Floor->SetMaterial(0, MaterialInstance);
+
+	if(Actortype == "Roof")
+		Roof->SetMaterial(0, MaterialInstance);
+	else
+		Floor->SetMaterial(0, MaterialInstance);
+
 }
 
 void ARoofGenerator::UpdateLocation()

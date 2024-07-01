@@ -17,6 +17,9 @@ public:
 	UProceduralMeshComponent* Road;
 
 	UPROPERTY()
+	UMaterialInterface* DefaultMaterial;
+
+	UPROPERTY()
 	FVector Size;
 
 protected:
