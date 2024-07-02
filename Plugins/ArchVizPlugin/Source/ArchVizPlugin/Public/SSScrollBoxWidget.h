@@ -15,6 +15,7 @@ enum class EAssetType : int8 {
 	Chair,
 	Table,
 	sofa ,
+	Stairs,
 	WallInterior ,
 	CeilInterior
 };
@@ -68,6 +69,7 @@ public:
 	void CreateChairScrollBox();
 	void CreateTableScrollBox();
 	void CreateSofaScrollBox();
+	void CreateStairScrollBox();
 	void CreateWallInteriorScrollBox();
 	void CreateCeilInteriorScrollBox();
 

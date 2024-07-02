@@ -25,6 +25,9 @@ public:
 	UButton* TableButton;
 
 	UPROPERTY(meta = (BindWidget))
+	UButton* StairButton;
+
+	UPROPERTY(meta = (BindWidget))
 	UButton* SofaButton;
 
 	UPROPERTY(meta = (BindWidget))
@@ -50,5 +53,8 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UMyScrollBoxWidget* CeilInteriorScrollBox;
+
+	UPROPERTY(meta = (BindWidget))
+	UMyScrollBoxWidget* StairScrollBox;
 
 };

@@ -75,6 +75,13 @@ void AArcWizPlayerController::SetupInputComponent()
 	MaterialLeftClickAction->ValueType = EInputActionValueType::Boolean;
 	MaterialMapping->MapKey(MaterialLeftClickAction, EKeys::LeftMouseButton);
 
+	TemplateMapping = NewObject<UInputMappingContext>(this);
+
+	TemplateLeftClickAction = NewObject<UInputAction>(this);
+	TemplateLeftClickAction->ValueType = EInputActionValueType::Boolean;
+	TemplateMapping->MapKey(TemplateLeftClickAction, EKeys::LeftMouseButton);
+	TemplateMapping->MapKey(RotateActionR, EKeys::R);
+	TemplateMapping->MapKey(RotateActionT, EKeys::T);
 
 
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
@@ -90,6 +97,7 @@ void AArcWizPlayerController::SetupInputComponent()
 		EIC->BindAction(DeSelectAction, ETriggerEvent::Completed, this, &AArcWizPlayerController::DeSelectFunction);
 		EIC->BindAction(InteriorLeftClickAction, ETriggerEvent::Completed, this, &AArcWizPlayerController::InteriorLeftClickFunction);
 		EIC->BindAction(MaterialLeftClickAction, ETriggerEvent::Completed, this, &AArcWizPlayerController::MaterialSelection);
+		EIC->BindAction(TemplateLeftClickAction, ETriggerEvent::Completed, this, &AArcWizPlayerController::TemplateLeftClickFunction);
 	}
 }
 
@@ -124,6 +132,10 @@ void AArcWizPlayerController::BeginPlay()
 	if (InteriorWidgetClass) {
 		InteriorWidget = CreateWidget<UInteriorWidget>(this, InteriorWidgetClass);
 	}
+	
+	if (TemplateWidgetclass) {
+		TemplateWidget = CreateWidget<UTemplateWidget>(this, TemplateWidgetclass);
+	}
 }
 
 void AArcWizPlayerController::Tick(float DeltaTime)
@@ -153,19 +165,28 @@ void AArcWizPlayerController::HandleSaveButtonclick()
 {
 
 	FString Name = MainWidget->SaveSlotName->GetText().ToString();
-	if (Name == "")
-		SaveGame();
-	else
-		SaveGame(Name);
 
-	if (Name == "") ProjectName = "Default";
-	else ProjectName = Name;
+	bool Result;
+	if (Name == "")
+		Result = SaveGame();
+	else
+		Result = SaveGame(Name);
+
+	if(Result)
+	{
+		if (Name == "") ProjectName = "Default";
+		else ProjectName = Name;
+		NotifyUser(ProjectName + " Saved Successfully");
+
+	}
+	else {
+		NotifyUser(ProjectName + "Didn't Save");
+	}
 
 	MainWidget->SaveSlotName->SetText(FText::FromString(""));
 	MainWidget->SaveBorder->SetVisibility(ESlateVisibility::Collapsed);
 	MainWidget->RenameButton->SetVisibility(ESlateVisibility::Visible);
 
-	NotifyUser(ProjectName + " Saved Successfully");
 }
 
 void AArcWizPlayerController::HandleRenameButtonclick()
@@ -179,9 +200,14 @@ void AArcWizPlayerController::HandleRenameButtonclick()
 	if (SavedGameInstance) {
 
 		SaveGame(Name);
-		UGameplayStatics::DeleteGameInSlot(ProjectName ,0 );
-		ProjectName = Name;
-		GEngine->AddOnScreenDebugMessage(-1,5,FColor::Red , "Rename");
+		if(UGameplayStatics::DeleteGameInSlot(ProjectName ,0 ))
+		{
+			NotifyUser(ProjectName + " Successfully Renamed To " + Name);
+			ProjectName = Name;
+		}
+		else {
+			NotifyUser(ProjectName + " Failed To Renamed ");
+		}
 		
 	}
 
@@ -194,12 +220,14 @@ void AArcWizPlayerController::HandleModeChange(FString mode, ESelectInfo::Type T
 	else if (mode == "House Builder") ModeType = EMode::HouseMode;
 	else if (mode == "Interior Design") ModeType = EMode::InteriorMode;
 	else if (mode == "Material Handle")ModeType = EMode::MaterialMode;
+	else if (mode == "Template Mode")ModeType = EMode::TemplateMode;
 	else ModeType = EMode::View;
 
 	RoadWidget->RemoveFromParent();
 	WallWidget->RemoveFromParent();
 	InteriorWidget->RemoveFromParent();
 	MaterialWidget->RemoveFromParent();
+	TemplateWidget->RemoveFromParent();
 
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	check(LocalPlayer);
@@ -308,7 +336,30 @@ void AArcWizPlayerController::HandleModeChange(FString mode, ESelectInfo::Type T
 			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(MaterialMapping, 0);
 		}
+	}
+	break;
 
+	case EMode::TemplateMode:
+	{
+		CleanUp();
+
+		TemplateWidget->AddToViewport();
+
+		if (TemplateWidget) {
+			TemplateWidget->DeleteTemplateButton->OnClicked.AddDynamic(this , &AArcWizPlayerController::TemplateDeleteButtonClick);
+			TemplateWidget->CompleteTemplateButton->OnClicked.AddDynamic(this , &AArcWizPlayerController::TempleteCompleteButtonClick);
+			TemplateWidget->Template1->OnClicked.AddDynamic(this , &AArcWizPlayerController::Template1ButtonClick);
+			TemplateWidget->Template2->OnClicked.AddDynamic(this , &AArcWizPlayerController::Template2ButtonClick);
+			TemplateWidget->Template3->OnClicked.AddDynamic(this , &AArcWizPlayerController::Template3ButtonClick);
+		}
+		if (MainWidget) {
+			MainWidget->InstructionButton->SetVisibility(ESlateVisibility::Collapsed);
+		}
+
+		if (Subsystem) {
+			Subsystem->ClearAllMappings();
+			Subsystem->AddMappingContext(TemplateMapping, 0);
+		}
 	}
 	break;
 
@@ -316,11 +367,7 @@ void AArcWizPlayerController::HandleModeChange(FString mode, ESelectInfo::Type T
 	case EMode::View:
 	{
 		CleanUp();
-		WallWidget->RemoveFromParent();
-		MaterialWidget->RemoveFromParent();
-		RoadWidget->RemoveFromParent();
-		InteriorWidget->RemoveFromParent();
-
+		
 		if (MainWidget) {
 			MainWidget->InstructionButton->SetVisibility(ESlateVisibility::Collapsed);;
 		}
@@ -329,12 +376,12 @@ void AArcWizPlayerController::HandleModeChange(FString mode, ESelectInfo::Type T
 			Subsystem->ClearAllMappings();
 		}
 
-		break;
 	}
+		break;
 	}
 }
 
-void AArcWizPlayerController::SaveGame(FString Slotname)
+bool AArcWizPlayerController::SaveGame(FString Slotname)
 {
 	UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::CreateSaveGameObject(UArchVizSaveGame::StaticClass()));
 
@@ -410,6 +457,7 @@ void AArcWizPlayerController::SaveGame(FString Slotname)
 				InteriorData.ActorTransform = InteriorActor->GetActorTransform();
 
 				InteriorData.Mesh = InteriorActor->MeshComponent->GetStaticMesh();
+				InteriorData.AttachmentType = InteriorActor->InteriorAttchmentType;
 				SavedGameInstance->InteriorActorArray.Add(InteriorData);
 
 				//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, "Saved Interior");
@@ -435,17 +483,21 @@ void AArcWizPlayerController::SaveGame(FString Slotname)
 			}
 		}
 
-		UGameplayStatics::SaveGameToSlot(SavedGameInstance, Slotname, 0);
+		return UGameplayStatics::SaveGameToSlot(SavedGameInstance, Slotname, 0);
+	}
+	else {
+		return false;
 	}
 }
 
-void AArcWizPlayerController::LoadGame(FString Slotname)
+bool AArcWizPlayerController::LoadGame(FString Slotname)
 {
 	UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::LoadGameFromSlot(Slotname, 0));
 
 	if (SavedGameInstance) {
 
 		TArray<AActor*> AllActors;
+
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARoadGenerator::StaticClass(), AllActors);
 
 		for (auto it : AllActors) it->Destroy();
@@ -471,7 +523,6 @@ void AArcWizPlayerController::LoadGame(FString Slotname)
 			SpawnActor->GenerateRoad(it.Dimenstion, { 0,0,0 }, it.Material);
 			SpawnActor->SetActorTransform(it.RoadTransform);
 			SpawnActor->SetMaterial(it.Material);
-
 		}
 
 		for (auto it : SavedGameInstance->WallActorArray) {
@@ -521,6 +572,7 @@ void AArcWizPlayerController::LoadGame(FString Slotname)
 
 			SpawnActor->SetActorTransform(it.ActorTransform);
 			SpawnActor->Generate(it.Mesh);
+			SpawnActor->InteriorAttchmentType = it.AttachmentType;
 		}
 
 		for (auto it : SavedGameInstance->RoofActorArray) {
@@ -537,6 +589,11 @@ void AArcWizPlayerController::LoadGame(FString Slotname)
 
 			SpawnActor->SetMaterial(it.Material);
 		}
+
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 
@@ -569,12 +626,17 @@ void AArcWizPlayerController::GetText(int32 Id)
 	auto string = SavedGameMapping[Id];
 	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Black, string);
 	string = string.LeftChop(4);
-	LoadGame(string);
+	if (LoadGame(string)) {
+		NotifyUser(string + " Loaded Successfully");
+		ProjectName = string;
+	}
+	else {
+		NotifyUser(string + " Loaded Failed");
+
+	}
 
 	MainWidget->ScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 	MainWidget->MainCanvas->SetVisibility(ESlateVisibility::Collapsed);
-	ProjectName = string;
-	NotifyUser(string + " Loaded Successfully");
 }
 
 void AArcWizPlayerController::DeleteLoadGame(int32 Id)
@@ -637,6 +699,7 @@ void AArcWizPlayerController::CleanUp()
 	bInteriorMode = false;
 }
 
+
 void AArcWizPlayerController::RotateFunctionT()
 {
 	if (IsValid(Wall)) {
@@ -653,6 +716,10 @@ void AArcWizPlayerController::RotateFunctionT()
 
 	if (IsValid(Interior)) {
 		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, -30, 0));
+	}
+
+	if (IsValid(TemplateActor)) {
+		TemplateActor->SetActorRelativeRotation(TemplateActor->GetActorRotation() + FRotator(0, -45, 0));
 	}
 }
 
@@ -672,6 +739,10 @@ void AArcWizPlayerController::RotateFunctionR()
 
 	if (IsValid(Interior)) {
 		Interior->SetActorRelativeRotation(Interior->GetActorRotation() + FRotator(0, 30, 0));
+	}
+	
+	if (IsValid(TemplateActor)) {
+		TemplateActor->SetActorRelativeRotation(TemplateActor->GetActorRotation() + FRotator(0, 45, 0));
 	}
 }
 
@@ -980,6 +1051,7 @@ void AArcWizPlayerController::SetInteriorModeVisibility()
 	InteriorWidget->SofaScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 	InteriorWidget->WallInteriorScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 	InteriorWidget->CeilInteriorScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+	InteriorWidget->StairScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 
 	switch (InteriorType) {
 	case EInteriorType::Chair:
@@ -992,6 +1064,10 @@ void AArcWizPlayerController::SetInteriorModeVisibility()
 
 	case EInteriorType::Sofa:
 		InteriorWidget->SofaScrollBox->SetVisibility(ESlateVisibility::Visible);
+		break;
+	
+	case EInteriorType::Stair:
+		InteriorWidget->StairScrollBox->SetVisibility(ESlateVisibility::Visible);
 		break;
 
 	case EInteriorType::WallInterior:
@@ -1077,6 +1153,8 @@ void AArcWizPlayerController::DoorMode()
 
 	HouseConstructionMode = EHouseConstructionMode::Door;
 	SetHouseModeVisibility();
+	WallWidget->DeleteDoorButton->SetVisibility(ESlateVisibility::Visible);
+
 	ULocalPlayer* LocalPlayer = GetLocalPlayer();
 	check(LocalPlayer);
 
@@ -1320,6 +1398,14 @@ void AArcWizPlayerController::SpawnAndGenerate()
 		if (Interior = Cast<AInteriorGenerator>(SpawnActor); IsValid(Interior)) {
 			Interior->Generate(StaticMesh);
 			Interior->HighlightInterior();
+
+
+			InteriorWidget->ChairScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+			InteriorWidget->TableScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+			InteriorWidget->SofaScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+			InteriorWidget->WallInteriorScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+			InteriorWidget->CeilInteriorScrollBox->SetVisibility(ESlateVisibility::Collapsed);
+			InteriorWidget->StairScrollBox->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
 }
@@ -1618,12 +1704,25 @@ void AArcWizPlayerController::InteriorLeftClickFunction()
 				Interior = Cast<AInteriorGenerator>(actor);
 				isMoving = false;
 				Interior->HighlightInterior();
+
+				if (Interior->InteriorAttchmentType == EInteriorAttchmentType::Wall) {
+					InteriorType = EInteriorType::WallInterior;
+				}
+				else if (Interior->InteriorAttchmentType == EInteriorAttchmentType::Ceil) {
+					InteriorType = EInteriorType::CeilInterior;
+				}
+				else if (Interior->InteriorAttchmentType == EInteriorAttchmentType::AnyWhere) {
+					InteriorType = EInteriorType::Stair;
+				}
+				else {
+					InteriorType = EInteriorType::Sofa;
+				}
 			}
 			else {
 				switch (InteriorType) {
 				case EInteriorType::WallInterior:
 				{
-					if (Cast<AWallGenerator>(actor)) {
+					if (Cast<AWallGenerator>(actor) && Interior->InteriorAttchmentType == EInteriorAttchmentType::Wall) {
 						if (IsValid(Interior)) Interior->DeHighlightInterior();
 						NotifyUser("Interior Placed");
 						SpawnAndGenerate();
@@ -1633,9 +1732,10 @@ void AArcWizPlayerController::InteriorLeftClickFunction()
 					}
 				}
 				break;
+
 				case EInteriorType::CeilInterior:
 				{
-					if ((IsValid(actor) && HitResult.GetComponent()->GetName() == "Roof")) {
+					if ((IsValid(actor) && HitResult.GetComponent()->GetName() == "Roof") && Interior->InteriorAttchmentType == EInteriorAttchmentType::Ceil) {
 
 						if (HitResult.ImpactNormal.Z < 0) {
 							if (IsValid(Interior)) Interior->DeHighlightInterior();
@@ -1651,8 +1751,20 @@ void AArcWizPlayerController::InteriorLeftClickFunction()
 					}
 				}
 				break;
+
+				case EInteriorType::Stair:
+				{
+					if (IsValid(actor) && IsValid(Interior) && Interior->InteriorAttchmentType == EInteriorAttchmentType::AnyWhere) {
+						Interior->DeHighlightInterior();
+						SpawnAndGenerate();
+						NotifyUser("Interior Placed");
+					}
+				}
+				break;
+
 				default:
-					if (IsValid(actor) && (HitResult.GetComponent()->GetName() == "Roof" || HitResult.GetComponent()->GetName() == "Floor")) {
+				{
+					if (IsValid(actor) && (HitResult.GetComponent()->GetName() == "Roof" || HitResult.GetComponent()->GetName() == "Floor") && Interior->InteriorAttchmentType == EInteriorAttchmentType::Floor) {
 						if (HitResult.ImpactNormal.Z > 0) {
 							if (IsValid(Interior)) Interior->DeHighlightInterior();
 							SpawnAndGenerate();
@@ -1666,12 +1778,10 @@ void AArcWizPlayerController::InteriorLeftClickFunction()
 						NotifyUser("Object Can Be Placed Only On Floor Or Roof");
 					}
 				}
+				}
 			}
-
 		}
 	}
-
-
 }
 
 void AArcWizPlayerController::BindInteriorWidget()
@@ -1680,10 +1790,12 @@ void AArcWizPlayerController::BindInteriorWidget()
 		InteriorWidget->ChairButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::ChairButtonClick);
 		InteriorWidget->TableButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::TableButtonClick);
 		InteriorWidget->SofaButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::SofaButtonClick);
+		InteriorWidget->StairButton->OnClicked.AddDynamic(this, &AArcWizPlayerController::StairButtonClick);
 		InteriorWidget->WallInterior->OnClicked.AddDynamic(this, &AArcWizPlayerController::WallInteriorButtonClick);
 		InteriorWidget->CeilInterior->OnClicked.AddDynamic(this, &AArcWizPlayerController::CeilInteriorButtonClick);
 		InteriorWidget->ChairScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 		InteriorWidget->TableScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
+		InteriorWidget->StairScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 		InteriorWidget->SofaScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 		InteriorWidget->WallInteriorScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
 		InteriorWidget->ChairScrollBox->OnStaticMeshSelectEvent.BindUObject(this, &AArcWizPlayerController::HandleStaticMeshSelect);
@@ -1702,6 +1814,8 @@ void AArcWizPlayerController::ChairButtonClick()
 	if (!IsValid(Interior)) {
 		SpawnAndGenerate();
 	}
+
+	if (IsValid(Interior)) Interior->InteriorAttchmentType = EInteriorAttchmentType::Floor;
 }
 
 void AArcWizPlayerController::TableButtonClick()
@@ -1712,6 +1826,21 @@ void AArcWizPlayerController::TableButtonClick()
 	if (!IsValid(Interior)) {
 		SpawnAndGenerate();
 	}
+
+	if (IsValid(Interior)) Interior->InteriorAttchmentType = EInteriorAttchmentType::Floor;
+}
+
+void AArcWizPlayerController::StairButtonClick()
+{
+	InteriorType = EInteriorType::Stair;
+	SetInteriorModeVisibility();
+
+	if (!IsValid(Interior)) {
+		SpawnAndGenerate();
+	}
+
+	if (IsValid(Interior)) Interior->InteriorAttchmentType = EInteriorAttchmentType::AnyWhere;
+
 }
 
 void AArcWizPlayerController::SofaButtonClick()
@@ -1722,6 +1851,8 @@ void AArcWizPlayerController::SofaButtonClick()
 	if (!IsValid(Interior)) {
 		SpawnAndGenerate();
 	}
+	if (IsValid(Interior)) Interior->InteriorAttchmentType = EInteriorAttchmentType::Floor;
+
 }
 
 void AArcWizPlayerController::WallInteriorButtonClick()
@@ -1732,6 +1863,9 @@ void AArcWizPlayerController::WallInteriorButtonClick()
 	if (!IsValid(Interior)) {
 		SpawnAndGenerate();
 	}
+
+	if (IsValid(Interior)) Interior->InteriorAttchmentType = EInteriorAttchmentType::Wall;
+
 }
 
 void AArcWizPlayerController::CeilInteriorButtonClick()
@@ -1742,6 +1876,9 @@ void AArcWizPlayerController::CeilInteriorButtonClick()
 	if (!IsValid(Interior)) {
 		SpawnAndGenerate();
 	}
+
+	if (IsValid(Interior)) Interior->InteriorAttchmentType = EInteriorAttchmentType::Ceil;
+
 }
 
 void AArcWizPlayerController::HandleStaticMeshSelect(const FStaticMeshtype& MeshData)
@@ -1798,6 +1935,293 @@ void AArcWizPlayerController::BindMaterialWidget()
 	if (MaterialWidget) {
 		MaterialWidget->WallMaterialScrollBox->OnWallSelectedEvent.BindUObject(this, &AArcWizPlayerController::HandleWallMaterialSelect);
 		MaterialWidget->RoadMaterialScrollBox->OnRoadSelectedEvent.BindUObject(this, &AArcWizPlayerController::HandleRoadMaterialSelect);
+	}
+}
+
+void AArcWizPlayerController::TemplateLeftClickFunction()
+{
+	if (FVector StartLocation_, WorldDirection; DeprojectMousePositionToWorld(StartLocation_, WorldDirection))
+	{
+		FVector EndLocation_ = StartLocation_ + WorldDirection * 100000;
+
+		FCollisionQueryParams Params;
+		Params.bTraceComplex = true;
+
+		Params.AddIgnoredActors(TemplateActor->GetChildActorArray());
+
+		if (FHitResult HitResult; GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation_, EndLocation_,
+			ECC_Visibility, Params))
+		{
+			FVector Location = HitResult.Location;
+
+			if(IsValid(TemplateActor))
+				TemplateActor->SetActorLocation(Location);
+		}
+	}
+}
+
+void AArcWizPlayerController::TemplateDeleteButtonClick()
+{
+	if (IsValid(TemplateActor)) TemplateActor->DestroyActor();
+}
+
+void AArcWizPlayerController::TempleteCompleteButtonClick()
+{
+	if (IsValid(TemplateActor)) TemplateActor = nullptr;
+}
+
+void AArcWizPlayerController::Template1ButtonClick()
+{
+
+	if(!IsValid(TemplateActor))
+	{
+		UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::LoadGameFromSlot("Template 1", 0));
+
+		if (SavedGameInstance) {
+
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			TemplateActor = GetWorld()->SpawnActor<AArchWizTemplateActor>(AArchWizTemplateActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+			for (auto it : SavedGameInstance->WallActorArray) {
+
+				auto SpawnActor = GetWorld()->SpawnActor<AWallGenerator>(WallGeneratorClass, FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+				if (SpawnActor) {
+					SpawnActor->SetActorTransform(it.WallTransform);
+					SpawnActor->ClearWalls();
+
+					for (int32 i = 0; i < it.WallWarray.Num(); i++) {
+
+						UStaticMesh* Mesh = it.WallWarray[i];
+
+						if (Mesh) {
+							UStaticMeshComponent* MeshComponent = NewObject<UStaticMeshComponent>(SpawnActor);
+							if (Mesh) {
+								MeshComponent->SetStaticMesh(Mesh);
+								MeshComponent->RegisterComponent();
+								MeshComponent->AttachToComponent(SpawnActor->Scene, FAttachmentTransformRules::KeepRelativeTransform);
+
+								if (MeshComponent->GetMaterials().Num() > 1) {
+									MeshComponent->SetRelativeRotation(FRotator(0, 90, 0));
+									MeshComponent->SetWorldScale3D(FVector(0.2, 1.005, 1));
+									MeshComponent->SetRelativeLocation(FVector(i * 300, 0, 0) + FVector(-1, 0, 0));
+								}
+								else {
+									MeshComponent->SetRelativeLocation(FVector(i * 300, 0, 0));
+								}
+								SpawnActor->WallArray.Add(MeshComponent);
+
+							}
+						}
+						SpawnActor->SetMaterial(it.Material);
+					}
+					TemplateActor->AddToChildActorArray(SpawnActor);
+				}
+			}
+
+			for (auto it : SavedGameInstance->InteriorActorArray) {
+
+				auto SpawnActor = GetWorld()->SpawnActor<AInteriorGenerator>(AInteriorGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+				SpawnActor->SetActorTransform(it.ActorTransform);
+				SpawnActor->Generate(it.Mesh);
+				SpawnActor->InteriorAttchmentType = it.AttachmentType;
+				TemplateActor->AddToChildActorArray(SpawnActor);
+			}
+
+			for (auto it : SavedGameInstance->RoofActorArray) {
+
+				auto SpawnActor = GetWorld()->SpawnActor<ARoofGenerator>(ARoofGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+				SpawnActor->SetActorTransform(it.ActorTransform);
+
+				if (it.ActorType == "Roof")
+					SpawnActor->GenerateRoof(it.Dimension, it.Material, FVector(0, 0, 300));
+				else if (it.ActorType == "Floor")
+					SpawnActor->GenerateFloor(it.Dimension, it.Material);
+
+				SpawnActor->SetMaterial(it.Material);
+				TemplateActor->AddToChildActorArray(SpawnActor);
+			}
+
+			TemplateActor->SetActorLocation(SavedGameInstance->WallActorArray[0].WallTransform.GetLocation());
+
+			TemplateActor->SetUpChilds();
+
+		}
+	}
+	else {
+		NotifyUser("Complete The Previous Template First");
+	}
+}
+
+void AArcWizPlayerController::Template2ButtonClick()
+{
+	UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::LoadGameFromSlot("Template 2", 0));
+
+	if(!IsValid(TemplateActor))
+	{
+		if (SavedGameInstance) {
+
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			TemplateActor = GetWorld()->SpawnActor<AArchWizTemplateActor>(AArchWizTemplateActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+			for (auto it : SavedGameInstance->WallActorArray) {
+
+				auto SpawnActor = GetWorld()->SpawnActor<AWallGenerator>(WallGeneratorClass, FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+				if (SpawnActor) {
+					SpawnActor->SetActorTransform(it.WallTransform);
+					SpawnActor->ClearWalls();
+
+					for (int32 i = 0; i < it.WallWarray.Num(); i++) {
+
+						UStaticMesh* Mesh = it.WallWarray[i];
+
+						if (Mesh) {
+							UStaticMeshComponent* MeshComponent = NewObject<UStaticMeshComponent>(SpawnActor);
+							if (Mesh) {
+								MeshComponent->SetStaticMesh(Mesh);
+								MeshComponent->RegisterComponent();
+								MeshComponent->AttachToComponent(SpawnActor->Scene, FAttachmentTransformRules::KeepRelativeTransform);
+
+								if (MeshComponent->GetMaterials().Num() > 1) {
+									MeshComponent->SetRelativeRotation(FRotator(0, 90, 0));
+									MeshComponent->SetWorldScale3D(FVector(0.2, 1.005, 1));
+									MeshComponent->SetRelativeLocation(FVector(i * 300, 0, 0) + FVector(-1, 0, 0));
+								}
+								else {
+									MeshComponent->SetRelativeLocation(FVector(i * 300, 0, 0));
+								}
+								SpawnActor->WallArray.Add(MeshComponent);
+
+							}
+						}
+						SpawnActor->SetMaterial(it.Material);
+					}
+					TemplateActor->AddToChildActorArray(SpawnActor);
+				}
+			}
+
+			for (auto it : SavedGameInstance->InteriorActorArray) {
+
+				auto SpawnActor = GetWorld()->SpawnActor<AInteriorGenerator>(AInteriorGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+				SpawnActor->SetActorTransform(it.ActorTransform);
+				SpawnActor->Generate(it.Mesh);
+				SpawnActor->InteriorAttchmentType = it.AttachmentType;
+				TemplateActor->AddToChildActorArray(SpawnActor);
+			}
+
+			for (auto it : SavedGameInstance->RoofActorArray) {
+
+				auto SpawnActor = GetWorld()->SpawnActor<ARoofGenerator>(ARoofGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+				SpawnActor->SetActorTransform(it.ActorTransform);
+
+				if (it.ActorType == "Roof")
+					SpawnActor->GenerateRoof(it.Dimension, it.Material, FVector(0, 0, 300));
+				else if (it.ActorType == "Floor")
+					SpawnActor->GenerateFloor(it.Dimension, it.Material);
+
+				SpawnActor->SetMaterial(it.Material);
+				TemplateActor->AddToChildActorArray(SpawnActor);
+			}
+
+			TemplateActor->SetActorLocation(SavedGameInstance->WallActorArray[0].WallTransform.GetLocation());
+
+			TemplateActor->SetUpChilds();
+
+		}
+	}
+	else {
+		NotifyUser("Complete The Previous Template First");
+	}
+}
+
+void AArcWizPlayerController::Template3ButtonClick()
+{
+	UArchVizSaveGame* SavedGameInstance = Cast<UArchVizSaveGame>(UGameplayStatics::LoadGameFromSlot("Template 3", 0));
+
+	if(!IsValid(TemplateActor)){
+		if (SavedGameInstance) {
+
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			TemplateActor = GetWorld()->SpawnActor<AArchWizTemplateActor>(AArchWizTemplateActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+			for (auto it : SavedGameInstance->WallActorArray) {
+
+				auto SpawnActor = GetWorld()->SpawnActor<AWallGenerator>(WallGeneratorClass, FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+				if (SpawnActor) {
+					SpawnActor->SetActorTransform(it.WallTransform);
+					SpawnActor->ClearWalls();
+
+					for (int32 i = 0; i < it.WallWarray.Num(); i++) {
+
+						UStaticMesh* Mesh = it.WallWarray[i];
+
+						if (Mesh) {
+							UStaticMeshComponent* MeshComponent = NewObject<UStaticMeshComponent>(SpawnActor);
+							if (Mesh) {
+								MeshComponent->SetStaticMesh(Mesh);
+								MeshComponent->RegisterComponent();
+								MeshComponent->AttachToComponent(SpawnActor->Scene, FAttachmentTransformRules::KeepRelativeTransform);
+
+								if (MeshComponent->GetMaterials().Num() > 1) {
+									MeshComponent->SetRelativeRotation(FRotator(0, 90, 0));
+									MeshComponent->SetWorldScale3D(FVector(0.2, 1.005, 1));
+									MeshComponent->SetRelativeLocation(FVector(i * 300, 0, 0) + FVector(-1, 0, 0));
+								}
+								else {
+									MeshComponent->SetRelativeLocation(FVector(i * 300, 0, 0));
+								}
+								SpawnActor->WallArray.Add(MeshComponent);
+
+							}
+						}
+						SpawnActor->SetMaterial(it.Material);
+					}
+					TemplateActor->AddToChildActorArray(SpawnActor);
+				}
+			}
+
+			for (auto it : SavedGameInstance->InteriorActorArray) {
+
+				auto SpawnActor = GetWorld()->SpawnActor<AInteriorGenerator>(AInteriorGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+				SpawnActor->SetActorTransform(it.ActorTransform);
+				SpawnActor->Generate(it.Mesh);
+				SpawnActor->InteriorAttchmentType = it.AttachmentType;
+				TemplateActor->AddToChildActorArray(SpawnActor);
+			}
+
+			for (auto it : SavedGameInstance->RoofActorArray) {
+
+				auto SpawnActor = GetWorld()->SpawnActor<ARoofGenerator>(ARoofGenerator::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+
+				SpawnActor->SetActorTransform(it.ActorTransform);
+
+				if (it.ActorType == "Roof")
+					SpawnActor->GenerateRoof(it.Dimension, it.Material, FVector(0, 0, 300));
+				else if (it.ActorType == "Floor")
+					SpawnActor->GenerateFloor(it.Dimension, it.Material);
+
+				SpawnActor->SetMaterial(it.Material);
+				TemplateActor->AddToChildActorArray(SpawnActor);
+			}
+
+			TemplateActor->SetActorLocation(SavedGameInstance->WallActorArray[0].WallTransform.GetLocation());
+
+			TemplateActor->SetUpChilds();
+
+		}
+	}
+	else {
+		NotifyUser("Complete The Previous Template First");
 	}
 }
 

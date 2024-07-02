@@ -93,8 +93,10 @@ void UMainWidget::HandleSaveButtonClick()
 	}
 	else {
 		ScrollBox->SetVisibility(ESlateVisibility::Collapsed);
-		PC->SaveGame(PC->ProjectName);
-		PC->NotifyUser(PC->ProjectName + " Saved Successfully");
+		if(PC->SaveGame(PC->ProjectName))
+			PC->NotifyUser(PC->ProjectName + " Saved Successfully");
+		else 
+			PC->NotifyUser(PC->ProjectName + " Didn't Save");
 	}
 }
 
@@ -136,7 +138,9 @@ void UMainWidget::HandleLoadButtonClick()
 		else {
 			for (int i = 0; i < array.Num(); i++) {
 				PC->AddDataToLoadMap(i, array[i]);
-				AddChilds(array[i].LeftChop(4), i);
+				FString Name = array[i].LeftChop(4);
+				if ((Name != "Template 1") && (Name != "Template 2") && (Name != "Template 3"))
+					AddChilds(Name, i);
 			}
 		}
 	}

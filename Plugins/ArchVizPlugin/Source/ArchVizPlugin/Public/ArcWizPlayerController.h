@@ -20,6 +20,8 @@
 #include <Components/ScrollBox.h>
 #include "CustomButton.h"
 #include "MainWidget.h"
+#include "ArchWizTemplateActor.h"
+#include "TemplateWidget.h"
 #include "ArcWizPlayerController.generated.h"
 
 UENUM()
@@ -28,6 +30,7 @@ enum class EMode : int8 {
 	HouseMode ,
 	InteriorMode ,
 	MaterialMode ,
+	TemplateMode ,
 	View
 };
 
@@ -47,6 +50,7 @@ enum class EInteriorType :int8 {
 	Chair , 
 	Table , 
 	Sofa ,
+	Stair,
 	WallInterior,
 	CeilInterior
 
@@ -59,6 +63,9 @@ class ARCHVIZPLUGIN_API AArcWizPlayerController : public APlayerController
 
 private:
 	// Variables 
+
+	UPROPERTY()
+	AArchWizTemplateActor* TemplateActor;
 		
 	UPROPERTY()
 	UMaterialInterface* DefaultMaterial;
@@ -117,6 +124,8 @@ private:
 	void SetInteriorModeVisibility();
 
 	void CleanUp();
+
+	void TemplateLeftClickFunction();
 	// Road 
 
 	void SpawnAndGenerateRoad(FVector Dimension);
@@ -235,6 +244,9 @@ private:
 	void TableButtonClick();
 
 	UFUNCTION()
+	void StairButtonClick();
+
+	UFUNCTION()
 	void SofaButtonClick();
 
 	UFUNCTION()
@@ -251,6 +263,23 @@ private:
 	void MaterialSelection();
 
 	void BindMaterialWidget();
+
+	// Template UI
+
+	UFUNCTION()
+	void TemplateDeleteButtonClick();
+
+	UFUNCTION()
+	void TempleteCompleteButtonClick();
+
+	UFUNCTION()
+	void Template1ButtonClick();
+
+	UFUNCTION()
+	void Template2ButtonClick();
+
+	UFUNCTION()
+	void Template3ButtonClick();
 
 
 public:
@@ -422,10 +451,10 @@ public:
 	void HandleModeChange(FString mode, ESelectInfo::Type Type);
 
 	UFUNCTION(BlueprintCallable)
-	void SaveGame(FString Sloatname = "Default");
+	bool SaveGame(FString Sloatname = "Default");
 
 	UFUNCTION(BlueprintCallable)
-	void LoadGame(FString Sloatname = "Default");
+	bool LoadGame(FString Sloatname = "Default");
 
 	UFUNCTION(BlueprintCallable)
 	TArray<FString> FindFiles(FString Path , FString Extension);
@@ -453,4 +482,16 @@ public:
 
 	UPROPERTY()
 	FString ProjectName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UTemplateWidget> TemplateWidgetclass;
+
+	UPROPERTY(BlueprintReadWrite)
+	UTemplateWidget* TemplateWidget;
+
+	UPROPERTY()
+	UInputAction* TemplateLeftClickAction;
+
+	UPROPERTY()
+	UInputMappingContext* TemplateMapping;
 };

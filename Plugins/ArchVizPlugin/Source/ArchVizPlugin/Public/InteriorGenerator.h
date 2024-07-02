@@ -7,6 +7,14 @@
 #include "ArchWizActor.h"
 #include "InteriorGenerator.generated.h"
 
+UENUM()
+enum class EInteriorAttchmentType : int8 {
+	AnyWhere ,
+	Floor , 
+	Ceil ,
+	Wall
+};
+
 UCLASS()
 class ARCHVIZPLUGIN_API AInteriorGenerator : public AArchWizActor
 {
@@ -20,6 +28,9 @@ public:
 
 	UPROPERTY()
 	UStaticMeshComponent* MeshComponent;
+
+	UPROPERTY()
+	TEnumAsByte<EInteriorAttchmentType> InteriorAttchmentType;
 
 protected:
 	virtual void BeginPlay() override;

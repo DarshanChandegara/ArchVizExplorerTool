@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "InteriorGenerator.h"
 #include "ArchVizSaveGame.generated.h"
 
 USTRUCT()
@@ -43,6 +44,9 @@ struct FInteriorActorProperty {
 
 	UPROPERTY()
 	FTransform ActorTransform;
+
+	UPROPERTY()
+	TEnumAsByte<EInteriorAttchmentType> AttachmentType;
 
 	UPROPERTY()
 	UStaticMesh* Mesh;

@@ -97,5 +97,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FStaticMeshtype> CeilInteriorArray;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FStaticMeshtype> StairArray;
+
 	
 };
