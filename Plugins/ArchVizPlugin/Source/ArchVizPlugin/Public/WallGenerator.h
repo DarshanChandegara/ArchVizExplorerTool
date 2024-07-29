@@ -16,6 +16,9 @@ class ARCHVIZPLUGIN_API AWallGenerator : public AArchWizActor
 	UPROPERTY()
 	UStaticMeshComponent* WallSegment;
 
+	UPROPERTY()
+	int32 NoOfSegment = 0;
+
 public:	
 
 	UPROPERTY()
@@ -58,5 +61,11 @@ public:
 	void GenerateDoor(UStaticMesh* DoorMesh);
 
 	void UpdateLocation();
+
+	int32 GetNoOfSegment() { return NoOfSegment; }
+
+	void SetNoOfSegment(int32 segmentNumber) {
+		NoOfSegment = segmentNumber;
+	}
 
 };

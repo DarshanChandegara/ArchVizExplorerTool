@@ -55,4 +55,8 @@ public:
 
 	void UpdateLocation();
 
+	void SetActorType(FString actor);
+
+	FString GetActorType();
+
 };

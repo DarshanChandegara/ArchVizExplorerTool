@@ -79,7 +79,9 @@ private:
 	bool bRoadMode = false;
 	bool bMaterialMode = false;
 	bool bInteriorMode = false;
-
+	bool bWallGenerating = false;
+	bool bFloorGenerating = false;
+	bool bNewActor = false;
 	// Road Generation
 
 	UPROPERTY()
@@ -113,6 +115,9 @@ private:
 	UPROPERTY()
 	UStaticMeshComponent* SelectedMesh;
 
+	UPROPERTY()
+	FVector SlabDimension;
+
 
 	FVector CurrentLocation;
 private:
@@ -125,7 +130,11 @@ private:
 
 	void CleanUp();
 
+	float CalculateAngleBetweenVectors(const FVector& Vector1, const FVector& Vector2);
+
 	void TemplateLeftClickFunction();
+
+	void SetRotation();
 	// Road 
 
 	void SpawnAndGenerateRoad(FVector Dimension);
@@ -167,6 +176,14 @@ private:
 	void AdjustmentFunction();
 
 	void DeSelectFunction();
+
+	void ExapandWall();
+
+	void HandleWallExpand();
+
+	void ExpandFloor();
+
+	void HandleFloorExpand();
 
 	// House UI
 
@@ -328,7 +345,10 @@ public:
 	UInputMappingContext* WallGenerationMapping;
 
 	UPROPERTY()
-	UInputMappingContext* RoofGenerationMapping;
+	UInputMappingContext* FloorGenerationMapping;
+
+	UPROPERTY()
+	UInputAction* FloorLeftClick;
 
 	UPROPERTY()
 	UInputMappingContext* AdjustmentMapping;

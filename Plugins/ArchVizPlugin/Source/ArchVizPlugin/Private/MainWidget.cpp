@@ -54,7 +54,7 @@ void UMainWidget::NativeConstruct()
 	}
 
 	if (CloseRename) {
-		CloseRename->OnClicked.AddDynamic(this, &UMainWidget::HandleCloseSaveClick);
+		CloseRename->OnClicked.AddDynamic(this, &UMainWidget::HandleCloseRenameClick);
 	}
 
 }

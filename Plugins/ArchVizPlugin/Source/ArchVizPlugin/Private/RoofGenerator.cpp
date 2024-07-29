@@ -315,3 +315,11 @@ void ARoofGenerator::UpdateLocation()
 	}
 }
 
+void ARoofGenerator::SetActorType(FString actor) {
+	Actortype = actor;
+}
+
+FString ARoofGenerator::GetActorType()
+{
+	return Actortype;
+}
